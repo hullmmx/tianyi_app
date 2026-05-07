@@ -1,21 +1,6 @@
-{
+﻿{
   "name": "tianyi-app",
   "version": "0.1.0",
   "private": true,
-  "description": "天意 · 老龟问卦 — AI 决策辅助",
-  "scripts": {
-    "dev":          "vercel dev",
-    "build":        "echo 'no build step needed'",
-    "type-check":   "tsc --noEmit",
-    "test:engine":  "tsx test/run.ts"
-  },
-  "dependencies": {
-    "@anthropic-ai/sdk": "^0.30.0",
-    "@vercel/node":      "^3.2.0"
-  },
-  "devDependencies": {
-    "typescript": "^5.5.0",
-    "tsx":        "^4.19.0",
-    "@types/node": "^20.11.0"
-  }
+  "description": "天意 · 老龟问卦"
 }
