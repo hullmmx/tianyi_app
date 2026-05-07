@@ -1,0 +1,33 @@
+# 仓库内统一使用 LF,本地 checkout 时各系统自处理
+# 解决 Windows 下「LF → CRLF」黄色警告
+
+# 自动识别文本文件,仓库内一律 LF
+* text=auto eol=lf
+
+# 显式标注文本类型
+*.md       text eol=lf
+*.json     text eol=lf
+*.html     text eol=lf
+*.svg      text eol=lf
+*.css      text eol=lf
+*.js       text eol=lf
+*.jsx      text eol=lf
+*.ts       text eol=lf
+*.tsx      text eol=lf
+*.yml      text eol=lf
+*.yaml     text eol=lf
+*.gitignore text eol=lf
+*.gitattributes text eol=lf
+
+# 二进制文件,不动行尾
+*.png      binary
+*.jpg      binary
+*.jpeg     binary
+*.gif      binary
+*.ico      binary
+*.pdf      binary
+*.woff     binary
+*.woff2    binary
+*.ttf      binary
+*.otf      binary
+*.zip      binary

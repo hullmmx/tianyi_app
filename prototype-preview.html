@@ -1,0 +1,1058 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>天意 · 老龟问卦</title>
+<style>
+  /* ============================================
+     Design Tokens
+     ============================================ */
+  :root {
+    --paper:        #F0EBE0;
+    --paper-warm:   #E8DFC9;
+    --ink:          #2A2520;
+    --ink-soft:     #3D362F;
+    --mist:         #8A7F70;
+    --mist-light:   #B8AC98;
+    --shell:        #8B6F47;
+    --shell-deep:   #6B5436;
+    --moss:         #5A6B45;
+    --vermillion:   #B23A1F;
+    --gold:         #C9A961;
+    --gold-glow:    #E8C97A;
+    --night:        #1A1612;
+    --night-mid:    #2D2620;
+
+    --serif:  'Noto Serif TC', 'Source Han Serif TC', 'Songti TC', 'STSong', serif;
+    --sans:   'Noto Sans TC', -apple-system, 'PingFang TC', sans-serif;
+
+    --ease-soft:  cubic-bezier(0.16, 1, 0.3, 1);
+    --ease-card:  cubic-bezier(0.22, 0.61, 0.36, 1);
+  }
+
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+  html, body {
+    margin: 0; padding: 0;
+    height: 100%;
+    overflow: hidden;
+    font-family: var(--serif);
+    -webkit-font-smoothing: antialiased;
+    user-select: none;
+  }
+
+  body {
+    background: radial-gradient(ellipse at 50% 70%, #2D2620 0%, #1A1612 80%);
+    transition: background 2200ms var(--ease-soft);
+  }
+  body.dawn {
+    background: radial-gradient(ellipse at 50% 60%, var(--paper) 0%, var(--paper-warm) 100%);
+  }
+
+  /* Subtle grain */
+  body::before {
+    content: '';
+    position: fixed; inset: 0;
+    background-image: radial-gradient(rgba(255,255,255,0.02) 1px, transparent 1px);
+    background-size: 3px 3px;
+    pointer-events: none;
+    z-index: 100;
+    transition: opacity 2000ms;
+  }
+  body.dawn::before {
+    background-image: radial-gradient(rgba(0,0,0,0.025) 1px, transparent 1px);
+  }
+
+  /* ============================================
+     Scene Layout
+     ============================================ */
+  .scene {
+    position: relative;
+    width: 100vw; height: 100vh;
+    max-width: 480px;
+    margin: 0 auto;
+    overflow: hidden;
+  }
+
+  /* Moon (upper right, faint) */
+  .moon {
+    position: absolute;
+    top: 8%; right: 12%;
+    width: 70px; height: 70px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 35% 35%, rgba(232,201,122,0.55), rgba(232,201,122,0.15) 70%, transparent);
+    filter: blur(0.5px);
+    transition: opacity 2200ms;
+  }
+  body.dawn .moon { opacity: 0; }
+
+  /* Brand */
+  .brand {
+    position: absolute; top: 56px; left: 50%; transform: translateX(-50%);
+    font-size: 13px; letter-spacing: 0.7em;
+    color: var(--mist-light);
+    z-index: 5;
+    transition: color 2000ms;
+  }
+  body.dawn .brand { color: var(--mist); }
+
+  /* Floating dust particles */
+  .particles { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
+  .particle {
+    position: absolute;
+    width: 3px; height: 3px;
+    background: rgba(232, 201, 122, 0.4);
+    border-radius: 50%;
+    bottom: -10px;
+    animation: float-up 12s linear infinite;
+  }
+  body.dawn .particle { background: rgba(178, 58, 31, 0.18); }
+
+  @keyframes float-up {
+    0%   { transform: translateY(0) translateX(0); opacity: 0; }
+    10%  { opacity: 1; }
+    90%  { opacity: 0.6; }
+    100% { transform: translateY(-110vh) translateX(20px); opacity: 0; }
+  }
+
+  /* ============================================
+     Turtle
+     ============================================ */
+  .turtle-stage {
+    position: absolute;
+    bottom: 22%;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 380px;
+    height: 304px;
+    z-index: 3;
+  }
+
+  .turtle {
+    width: 100%; height: 100%;
+    filter: drop-shadow(0 0 28px rgba(232, 201, 122, 0.22));
+    transition: filter 2000ms;
+  }
+  body.dawn .turtle { filter: drop-shadow(0 4px 10px rgba(0,0,0,0.08)); }
+
+  /* Turtle parts that change color with mode (broader selectors for refined SVG) */
+  .turtle [data-ink]     { stroke: #C9B89B; transition: stroke 2200ms; }
+  .turtle [data-shell]   { fill: #4A3D2A; stroke: #C9B89B; transition: all 2200ms; }
+  .turtle [data-skin]    { fill: #3A4530; stroke: #C9B89B; transition: all 2200ms; }
+  .turtle [data-belly]   { fill: #2E3A24; stroke: #C9B89B; transition: all 2200ms; }
+  .turtle [data-eye-bg]  { fill: #C9B89B; stroke: #2A2520; transition: all 2200ms; }
+  .turtle [data-iris]    { fill: #2A2520; transition: fill 2200ms; }
+  .turtle [data-gleam]   { fill: #C9B89B; transition: fill 2200ms; }
+
+  body.dawn .turtle [data-ink]    { stroke: var(--ink); }
+  body.dawn .turtle [data-shell]  { fill: var(--shell); stroke: var(--ink); }
+  body.dawn .turtle [data-skin]   { fill: var(--moss); stroke: var(--ink); }
+  body.dawn .turtle [data-belly]  { fill: #4A5938; stroke: var(--ink); }
+  body.dawn .turtle [data-eye-bg] { fill: var(--paper); }
+  body.dawn .turtle [data-gleam]  { fill: var(--paper); }
+
+  /* Breathing animation on shell — transform-box ensures origin works in SVG */
+  .turtle-shell {
+    transform-origin: 50% 55%;
+    transform-box: fill-box;
+    animation: breathe 4.2s ease-in-out infinite;
+  }
+  @keyframes breathe {
+    0%, 100% { transform: scaleY(1); }
+    50%      { transform: scaleY(1.03); }
+  }
+
+  /* Eyes — closed by default, open via JS */
+  .eye-closed { opacity: 1; transition: opacity 800ms; }
+  .eye-open   { opacity: 0; transition: opacity 800ms; }
+  body.awake .eye-closed { opacity: 0; }
+  body.awake .eye-open   { opacity: 1; }
+
+  /* ZZZ */
+  .zzz-stage {
+    position: absolute;
+    top: 16%;
+    right: 28%;
+    pointer-events: none;
+    z-index: 4;
+    transition: opacity 800ms;
+  }
+  body.awake .zzz-stage { opacity: 0; }
+
+  .zzz {
+    position: absolute;
+    font-family: var(--serif);
+    color: rgba(232, 201, 122, 0.55);
+    animation: zzz-float 3s ease-in-out infinite;
+  }
+  .zzz:nth-child(1) { font-size: 22px; left: 0;   top: 30px; animation-delay: 0s; }
+  .zzz:nth-child(2) { font-size: 16px; left: 18px; top: 14px; animation-delay: 1s; }
+  .zzz:nth-child(3) { font-size: 12px; left: 32px; top: 0;   animation-delay: 2s; }
+
+  @keyframes zzz-float {
+    0%   { opacity: 0; transform: translateY(0); }
+    20%  { opacity: 0.8; }
+    100% { opacity: 0; transform: translateY(-30px); }
+  }
+
+  /* ============================================
+     Speech Bubble
+     ============================================ */
+  .bubble {
+    position: absolute;
+    bottom: 60%;
+    left: 50%;
+    transform: translateX(-50%) translateY(20px);
+    background: rgba(245, 240, 224, 0.96);
+    color: var(--ink);
+    padding: 18px 26px;
+    border-radius: 4px;
+    font-family: var(--serif);
+    font-size: 17px;
+    line-height: 1.7;
+    letter-spacing: 0.05em;
+    max-width: 320px;
+    text-align: center;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 700ms var(--ease-soft), transform 700ms var(--ease-soft);
+    z-index: 6;
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
+  }
+  .bubble.show {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+  /* Speech bubble pointer */
+  .bubble::after {
+    content: '';
+    position: absolute;
+    bottom: -10px;
+    left: 60%;
+    width: 0; height: 0;
+    border-left: 10px solid transparent;
+    border-right: 10px solid transparent;
+    border-top: 10px solid rgba(245, 240, 224, 0.96);
+  }
+
+  /* ============================================
+     Tap Hint (initial)
+     ============================================ */
+  .tap-hint {
+    position: absolute;
+    bottom: 12%;
+    left: 50%;
+    transform: translateX(-50%);
+    color: rgba(232, 201, 122, 0.5);
+    font-size: 13px;
+    letter-spacing: 0.5em;
+    animation: pulse 2.4s ease-in-out infinite;
+    z-index: 6;
+    transition: opacity 600ms;
+  }
+  .tap-hint.hidden { opacity: 0; pointer-events: none; }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 0.4; }
+    50%      { opacity: 0.85; }
+  }
+
+  /* ============================================
+     Input Area
+     ============================================ */
+  .input-area {
+    position: absolute;
+    bottom: 8%;
+    left: 50%;
+    transform: translateX(-50%) translateY(40px);
+    width: calc(100% - 64px);
+    max-width: 380px;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 800ms var(--ease-soft), transform 800ms var(--ease-soft);
+    z-index: 7;
+  }
+  .input-area.show {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+    pointer-events: auto;
+  }
+
+  .input-row {
+    display: flex; align-items: center;
+    gap: 8px;
+    background: rgba(245, 240, 224, 0.95);
+    padding: 14px 18px;
+    border-radius: 2px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+  }
+  .input-prefix {
+    font-family: var(--serif);
+    font-size: 18px;
+    color: var(--ink);
+    letter-spacing: 0.08em;
+    flex-shrink: 0;
+  }
+  .input-field {
+    flex: 1;
+    background: transparent;
+    border: none;
+    outline: none;
+    font-family: var(--serif);
+    font-size: 17px;
+    color: var(--ink);
+    padding: 4px 0;
+    border-bottom: 1px solid var(--mist-light);
+  }
+  .input-field:focus { border-bottom-color: var(--ink); }
+  .input-field::placeholder { color: var(--mist-light); }
+
+  .input-submit {
+    background: var(--ink);
+    color: var(--paper);
+    border: none;
+    font-family: var(--serif);
+    font-size: 16px;
+    letter-spacing: 0.2em;
+    padding: 10px 18px;
+    cursor: pointer;
+    transition: opacity 200ms;
+  }
+  .input-submit:hover { opacity: 0.85; }
+  .input-submit:disabled { opacity: 0.3; cursor: not-allowed; }
+
+  /* ============================================
+     Hexagram Tablet (6 lines drawn during cast)
+     ============================================ */
+  .hexagram-tablet {
+    position: absolute;
+    top: 18%;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 200px;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 800ms;
+    z-index: 4;
+  }
+  .hexagram-tablet.show { opacity: 1; }
+
+  .hex-line {
+    position: relative;
+    height: 14px;
+    margin: 8px 0;
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+  }
+  .hex-line .seg {
+    height: 6px;
+    width: 0;
+    background: var(--gold-glow);
+    box-shadow: 0 0 12px rgba(232, 201, 122, 0.8);
+    border-radius: 1px;
+    transition: width 700ms var(--ease-card);
+  }
+  .hex-line.yang .seg-1 { width: 160px; }
+  .hex-line.yin  .seg-1 { width: 70px; }
+  .hex-line.yin  .seg-2 { width: 70px; }
+  .hex-line.cast.changing .seg {
+    background: var(--vermillion);
+    box-shadow: 0 0 20px rgba(178, 58, 31, 0.7);
+  }
+
+  /* When dawn breaks, lines turn solid ink */
+  body.dawn .hex-line .seg {
+    background: var(--ink);
+    box-shadow: none;
+  }
+  body.dawn .hex-line.cast.changing .seg {
+    background: var(--vermillion);
+  }
+
+  .hexagram-name {
+    text-align: center;
+    margin-top: 18px;
+    font-family: var(--serif);
+    font-size: 14px;
+    letter-spacing: 0.4em;
+    color: rgba(232, 201, 122, 0.7);
+    transition: color 2000ms;
+    opacity: 0;
+  }
+  .hexagram-name.show { opacity: 1; transition: opacity 800ms; }
+  body.dawn .hexagram-name { color: var(--mist); }
+
+  /* ============================================
+     Quote Stream (loading)
+     ============================================ */
+  .quote-stage {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 80%;
+    max-width: 360px;
+    text-align: center;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 800ms;
+    z-index: 5;
+  }
+  .quote-stage.show { opacity: 1; }
+  .quote-stage.fade-out { opacity: 0; }
+
+  .quote-text {
+    font-family: var(--serif);
+    font-size: 22px;
+    line-height: 2;
+    color: rgba(245, 240, 224, 0.92);
+    letter-spacing: 0.08em;
+    margin-bottom: 18px;
+    transition: opacity 1100ms var(--ease-soft), transform 1100ms var(--ease-soft);
+  }
+  .quote-source {
+    font-family: var(--serif);
+    font-size: 12px;
+    color: rgba(232, 201, 122, 0.6);
+    letter-spacing: 0.4em;
+    transition: opacity 1100ms;
+  }
+  .quote-text.entering, .quote-source.entering {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+
+  /* ============================================
+     Result Reveal
+     ============================================ */
+  .result {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: calc(100% - 48px);
+    max-width: 420px;
+    max-height: 86vh;
+    overflow-y: auto;
+    padding: 32px 28px;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 1000ms var(--ease-soft);
+    z-index: 8;
+  }
+  .result.show {
+    opacity: 1;
+    pointer-events: auto;
+  }
+  .result::-webkit-scrollbar { display: none; }
+
+  /* Verdict — 朱砂大字,英雄帧 */
+  .verdict-stage {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 32px 0 24px;
+    min-height: 140px;
+  }
+  .verdict {
+    font-family: var(--serif);
+    font-size: 108px;
+    font-weight: 500;
+    color: var(--vermillion);
+    letter-spacing: 0.05em;
+    line-height: 1;
+    opacity: 0;
+    transform: scale(0.6) translateY(20px);
+    transition:
+      opacity   1000ms var(--ease-soft),
+      transform 1000ms var(--ease-soft),
+      font-size 700ms  var(--ease-soft) 1500ms;
+    text-shadow:
+      0 0 1px rgba(178, 58, 31, 0.3),
+      0 4px 16px rgba(178, 58, 31, 0.15);
+    user-select: none;
+  }
+  .verdict.revealed {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+  .verdict.shrunk {
+    font-size: 64px;
+  }
+
+  /* Laogui — 朋友的一句话,无装饰 */
+  .laogui-stage {
+    text-align: center;
+    padding: 0 16px;
+    margin-top: 12px;
+  }
+  .laogui {
+    font-family: var(--serif);
+    font-size: 19px;
+    line-height: 1.85;
+    color: var(--ink-soft);
+    letter-spacing: 0.04em;
+    opacity: 0;
+    transform: translateY(8px);
+    transition:
+      opacity 1100ms var(--ease-soft) 1800ms,
+      transform 1100ms var(--ease-soft) 1800ms;
+  }
+  .laogui.revealed {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  .result-actions {
+    display: flex; justify-content: center; gap: 12px;
+    margin-top: 40px;
+    opacity: 0;
+    transition: opacity 800ms 3300ms;
+  }
+  .result.show .result-actions { opacity: 1; }
+
+  .btn-ghost {
+    background: transparent;
+    border: 1px solid var(--mist);
+    color: var(--mist);
+    font-family: var(--serif);
+    font-size: 14px;
+    letter-spacing: 0.3em;
+    padding: 12px 22px;
+    cursor: pointer;
+    transition: all 300ms;
+  }
+  .btn-ghost:hover { border-color: var(--ink); color: var(--ink); }
+
+  .btn-primary {
+    background: var(--ink);
+    color: var(--paper);
+    border: 1px solid var(--ink);
+    font-family: var(--serif);
+    font-size: 14px;
+    letter-spacing: 0.3em;
+    padding: 12px 22px;
+    cursor: pointer;
+  }
+</style>
+</head>
+<body>
+
+<div class="scene">
+
+  <div class="moon"></div>
+  <div class="brand">天 意</div>
+
+  <div class="particles" id="particles"></div>
+
+  <!-- ============================================
+       Turtle (Master Oogway-style, side profile)
+       ============================================ -->
+  <div class="turtle-stage">
+    <svg class="turtle" viewBox="0 0 400 320" xmlns="http://www.w3.org/2000/svg">
+      <!-- Ground line (subtle) -->
+      <path data-ink stroke-width="1" fill="none" stroke-linecap="round" opacity="0.3"
+            d="M 30 285 Q 200 278 380 285"/>
+
+      <!-- Tail (curled, peeking from back) -->
+      <path data-ink stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"
+            d="M 95 215 Q 70 218 55 230 Q 50 240 60 245"/>
+
+      <!-- Back leg -->
+      <path data-skin stroke-width="2" stroke-linejoin="round"
+            d="M 115 250 Q 100 275 95 280 L 102 282 Q 115 280 125 270 Q 130 258 125 250 Z"/>
+      <path data-ink stroke-width="1" fill="none" stroke-linecap="round"
+            d="M 102 282 L 100 286 M 108 282 L 107 287 M 114 281 L 114 286"/>
+
+      <!-- Front leg -->
+      <path data-skin stroke-width="2" stroke-linejoin="round"
+            d="M 250 250 Q 270 280 285 282 L 290 280 Q 285 270 277 260 Q 270 252 260 250 Z"/>
+      <path data-ink stroke-width="1" fill="none" stroke-linecap="round"
+            d="M 280 280 L 281 286 M 286 280 L 288 286 M 290 278 L 293 284"/>
+
+      <!-- Shell underbelly shadow -->
+      <path data-belly stroke-width="1.5" stroke-linejoin="round" opacity="0.85"
+            d="M 100 230 Q 200 248 290 230 L 285 240 Q 200 258 105 240 Z"/>
+
+      <!-- Shell main dome (organic curve, breathing) -->
+      <g class="turtle-shell">
+        <path data-shell stroke-width="3" stroke-linejoin="round"
+              d="M 95 235
+                 C 90 175, 110 130, 145 115
+                 C 180 100, 220 100, 260 118
+                 C 290 132, 305 175, 295 235
+                 C 230 248, 165 248, 95 235 Z"/>
+
+        <!-- Shell ridge / spine -->
+        <path data-ink stroke-width="1.3" fill="none" stroke-linecap="round" opacity="0.45"
+              d="M 195 110 Q 197 165 198 220"/>
+
+        <!-- Hexagonal scutes (asymmetric, hand-drawn feel) -->
+        <g data-ink stroke-width="1.4" fill="none" stroke-linejoin="round" opacity="0.6">
+          <path d="M 175 125 L 195 117 L 218 117 L 232 130 L 220 148 L 192 147 Z"/>
+          <path d="M 130 158 L 152 145 L 175 152 L 175 175 L 153 183 L 131 175 Z"/>
+          <path d="M 232 152 L 255 148 L 275 162 L 268 182 L 248 188 L 232 175 Z"/>
+          <path d="M 118 195 L 145 187 L 168 195 L 165 218 L 142 222 L 118 213 Z"/>
+          <path d="M 232 198 L 257 192 L 280 200 L 275 218 L 252 224 L 232 217 Z"/>
+          <path d="M 170 218 L 195 213 L 222 218 L 218 238 L 195 240 L 172 235 Z"/>
+        </g>
+
+        <!-- Subtle highlights -->
+        <path data-ink stroke-width="0.8" fill="none" stroke-linecap="round" opacity="0.35"
+              d="M 145 130 Q 160 125 178 122"/>
+        <path data-ink stroke-width="0.8" fill="none" stroke-linecap="round" opacity="0.35"
+              d="M 222 122 Q 240 125 255 130"/>
+      </g>
+
+      <!-- Neck + Head (organic blob extending forward) -->
+      <path data-skin stroke-width="2.5" stroke-linejoin="round"
+            d="M 290 195
+               C 305 188, 320 178, 335 175
+               C 360 172, 375 188, 365 215
+               C 355 230, 335 232, 320 220
+               C 305 215, 295 210, 290 200 Z"/>
+
+      <!-- Neck wrinkles (age markers) -->
+      <path data-ink stroke-width="0.9" fill="none" stroke-linecap="round" opacity="0.55"
+            d="M 305 200 Q 315 205 322 207"/>
+      <path data-ink stroke-width="0.9" fill="none" stroke-linecap="round" opacity="0.55"
+            d="M 305 210 Q 315 213 320 213"/>
+
+      <!-- ==== Face: closed (dozing) ==== -->
+      <g class="eye-closed">
+        <!-- Closed eye: gentle downward arc -->
+        <path data-ink stroke-width="2" fill="none" stroke-linecap="round"
+              d="M 338 188 Q 348 192 360 188"/>
+        <!-- Sleep wrinkle below -->
+        <path data-ink stroke-width="0.9" fill="none" stroke-linecap="round" opacity="0.5"
+              d="M 340 192 Q 348 195 358 192"/>
+        <!-- Relaxed eyebrow -->
+        <path data-ink stroke-width="1.6" fill="none" stroke-linecap="round" opacity="0.7"
+              d="M 332 178 Q 345 174 365 178"/>
+      </g>
+
+      <!-- ==== Face: open (awake) ==== -->
+      <g class="eye-open">
+        <!-- Eye outer (white-of-eye area) -->
+        <ellipse cx="349" cy="187" rx="6" ry="5.5" data-eye-bg stroke-width="1.5"/>
+        <!-- Iris -->
+        <ellipse cx="350" cy="188" rx="3.6" ry="4" data-iris/>
+        <!-- Gleam highlight -->
+        <circle cx="351.4" cy="186.5" r="1.1" data-gleam/>
+        <!-- Curious eyebrow (slight raise) -->
+        <path data-ink stroke-width="1.7" fill="none" stroke-linecap="round" opacity="0.85"
+              d="M 332 174 Q 348 167 366 174"/>
+        <!-- Wisdom corner wrinkle -->
+        <path data-ink stroke-width="0.9" fill="none" stroke-linecap="round" opacity="0.5"
+              d="M 358 192 Q 363 194 368 192"/>
+      </g>
+
+      <!-- Mouth (gentle smile) -->
+      <path data-ink stroke-width="1.5" fill="none" stroke-linecap="round"
+            d="M 358 210 Q 366 215 374 210"/>
+
+      <!-- Beard wisps (4 strands of varying length) -->
+      <path data-ink stroke-width="1.4" fill="none" stroke-linecap="round" opacity="0.85"
+            d="M 358 215 Q 354 232 348 252"/>
+      <path data-ink stroke-width="1.2" fill="none" stroke-linecap="round" opacity="0.7"
+            d="M 364 215 Q 364 234 360 256"/>
+      <path data-ink stroke-width="1.0" fill="none" stroke-linecap="round" opacity="0.55"
+            d="M 370 213 Q 372 228 372 248"/>
+      <path data-ink stroke-width="0.8" fill="none" stroke-linecap="round" opacity="0.4"
+            d="M 376 210 Q 380 220 380 232"/>
+
+      <!-- Nostril -->
+      <circle cx="372" cy="198" r="0.9" data-ink fill-opacity="0.65"/>
+    </svg>
+  </div>
+
+  <!-- ZZZ (sleeping) -->
+  <div class="zzz-stage" id="zzz-stage">
+    <span class="zzz">Z</span>
+    <span class="zzz">z</span>
+    <span class="zzz">z</span>
+  </div>
+
+  <!-- Hexagram tablet -->
+  <div class="hexagram-tablet" id="hexagram-tablet">
+    <div class="hex-line" data-pos="6"><div class="seg seg-1"></div><div class="seg seg-2"></div></div>
+    <div class="hex-line" data-pos="5"><div class="seg seg-1"></div><div class="seg seg-2"></div></div>
+    <div class="hex-line" data-pos="4"><div class="seg seg-1"></div><div class="seg seg-2"></div></div>
+    <div class="hex-line" data-pos="3"><div class="seg seg-1"></div><div class="seg seg-2"></div></div>
+    <div class="hex-line" data-pos="2"><div class="seg seg-1"></div><div class="seg seg-2"></div></div>
+    <div class="hex-line" data-pos="1"><div class="seg seg-1"></div><div class="seg seg-2"></div></div>
+    <div class="hexagram-name" id="hexagram-name">山雷颐 之 山泽损</div>
+  </div>
+
+  <!-- Speech bubble -->
+  <div class="bubble" id="bubble"><span id="bubble-text"></span></div>
+
+  <!-- Tap hint -->
+  <div class="tap-hint" id="tap-hint">轻 触 唤 醒 老 龟</div>
+
+  <!-- Input area -->
+  <div class="input-area" id="input-area">
+    <div class="input-row">
+      <span class="input-prefix">要不要</span>
+      <input type="text" class="input-field" id="question"
+             placeholder="把心里那件事写在这里" maxlength="40">
+      <button class="input-submit" id="submit-btn">说</button>
+    </div>
+  </div>
+
+  <!-- Quote stage -->
+  <div class="quote-stage" id="quote-stage">
+    <div class="quote-text" id="quote-text"></div>
+    <div class="quote-source" id="quote-source"></div>
+  </div>
+
+  <!-- Result reveal -->
+  <div class="result" id="result">
+    <div class="verdict-stage">
+      <div class="verdict" id="verdict">缓</div>
+    </div>
+    <div class="laogui-stage">
+      <div class="laogui" id="laogui"></div>
+    </div>
+    <div class="result-actions">
+      <button class="btn-primary" onclick="askAgain()">再 问 一 卦</button>
+      <button class="btn-ghost" onclick="farewell()">辞 别 老 龟</button>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  // ============================================
+  // Quotes pool (loading screen)
+  // ============================================
+  const QUOTES = [
+    { text: '一阴一阳之谓道',                           src: '— 易传·系辞上' },
+    { text: '时止则止,时行则行',                       src: '— 易经·艮卦' },
+    { text: '君子藏器于身,待时而动',                   src: '— 易传·系辞下' },
+    { text: '穷则变,变则通,通则久',                  src: '— 易传·系辞下' },
+    { text: '上善若水,水善利万物而不争',               src: '— 道德经·八章' },
+    { text: '夫唯不争,故天下莫能与之争',               src: '— 道德经·二十二章' },
+    { text: '将欲取之,必固与之',                       src: '— 道德经·三十六章' },
+    { text: '大器晚成,大音希声',                       src: '— 道德经·四十一章' },
+    { text: '祸兮福所倚,福兮祸所伏',                   src: '— 道德经·五十八章' },
+    { text: '天之道,损有余而补不足',                   src: '— 道德经·七十七章' },
+    { text: '至人之用心若镜,不将不迎',                 src: '— 庄子·应帝王' },
+    { text: '无心恰恰用,常用恰恰无心',                 src: '— 永嘉玄觉' },
+    { text: '不行而知,不见而明',                       src: '— 道德经·四十七章' },
+    { text: '同声相应,同气相求',                       src: '— 易传·乾卦文言' },
+    { text: '飞龙在天,利见大人',                       src: '— 易经·乾卦' },
+    { text: '亢龙有悔,盈不可久也',                     src: '— 易经·乾卦' },
+  ];
+
+  // ============================================
+  // Pre-baked answers (mock LLM responses)
+  // ============================================
+  // 阶段 A:mock 输出池(原型用)
+  // 上线时由 /api/divine 返回 { verdict, laogui } 替代
+  const ANSWERS = [
+    { verdict: '是', laogui: '你心里早就有答案,问我不过是要个允许。' },
+    { verdict: '是', laogui: '出手吧,这事再拖你会怪自己。' },
+    { verdict: '是', laogui: '试一次,这事再不做你会一直惦记。' },
+    { verdict: '否', laogui: '你不是讨厌这件事,你是讨厌这阵子的自己。' },
+    { verdict: '否', laogui: '别答应,你只是不好意思拒绝。' },
+    { verdict: '否', laogui: '这事别做,做了你会失去一阵自己。' },
+    { verdict: '缓', laogui: '再陪自己一阵,这事还没到时候。' },
+    { verdict: '缓', laogui: '今天先睡一觉,明天再问一次。' },
+    { verdict: '缓', laogui: '过两周再看,这阵子你眼神不对。' },
+  ];
+
+  // ============================================
+  // 梅花易数·时间起卦法 (simplified)
+  // 用当前时间 + 问题字数 派生 6 爻
+  // ============================================
+  // 八卦序: 乾1 兑2 离3 震4 巽5 坎6 艮7 坤8
+  const TRIGRAMS = ['乾', '兑', '离', '震', '巽', '坎', '艮', '坤'];
+
+  function castHexagram(question) {
+    const now = new Date();
+    const year = now.getFullYear() - 1900;       // simple normalization
+    const month = now.getMonth() + 1;
+    const day = now.getDate();
+    const hour = now.getHours();
+    const qLen = question.length || 1;
+
+    const upper = ((year + month + day + qLen) % 8) || 8;
+    const lower = ((year + month + day + hour + qLen) % 8) || 8;
+    const moving = ((year + month + day + hour + qLen) % 6) || 6;
+
+    // Each trigram → 3 lines (yang=1, yin=0). We map index:
+    // 乾111 兑110 离101 震100 巽011 坎010 艮001 坤000
+    const lineMap = {
+      1: [1,1,1], 2: [1,1,0], 3: [1,0,1], 4: [1,0,0],
+      5: [0,1,1], 6: [0,1,0], 7: [0,0,1], 8: [0,0,0],
+    };
+
+    // 上卦 = 第 4-6 爻 (顶部),下卦 = 第 1-3 爻 (底部)
+    // 数组索引 [0..5] 对应 第1爻..第6爻
+    const lower3 = lineMap[lower].slice().reverse();   // 底部 (爻位 1,2,3)
+    const upper3 = lineMap[upper].slice().reverse();   // 顶部 (爻位 4,5,6)
+    const lines = [...lower3, ...upper3];              // 6 lines, idx 0=初爻
+
+    return { lines, moving, upperName: TRIGRAMS[upper - 1], lowerName: TRIGRAMS[lower - 1] };
+  }
+
+  // ============================================
+  // State machine
+  // ============================================
+  const $bubble = document.getElementById('bubble');
+  const $bubbleText = document.getElementById('bubble-text');
+  const $tapHint = document.getElementById('tap-hint');
+  const $input = document.getElementById('input-area');
+  const $question = document.getElementById('question');
+  const $submit = document.getElementById('submit-btn');
+  const $tablet = document.getElementById('hexagram-tablet');
+  const $hexName = document.getElementById('hexagram-name');
+  const $quoteStage = document.getElementById('quote-stage');
+  const $quoteText = document.getElementById('quote-text');
+  const $quoteSource = document.getElementById('quote-source');
+  const $result = document.getElementById('result');
+
+  let state = 'idle';
+  let bubbleTimer;
+
+  // Particles
+  function spawnParticles() {
+    const stage = document.getElementById('particles');
+    for (let i = 0; i < 14; i++) {
+      const p = document.createElement('div');
+      p.className = 'particle';
+      p.style.left = Math.random() * 100 + '%';
+      p.style.animationDelay = (Math.random() * 12) + 's';
+      p.style.animationDuration = (10 + Math.random() * 8) + 's';
+      stage.appendChild(p);
+    }
+  }
+  spawnParticles();
+
+  function showBubble(text, dwell = 0) {
+    clearTimeout(bubbleTimer);
+    $bubbleText.textContent = text;
+    $bubble.classList.add('show');
+    if (dwell > 0) {
+      bubbleTimer = setTimeout(() => $bubble.classList.remove('show'), dwell);
+    }
+  }
+  function hideBubble() {
+    clearTimeout(bubbleTimer);
+    $bubble.classList.remove('show');
+  }
+
+  // ========= Step 1: Wake the turtle =========
+  function wake() {
+    if (state !== 'idle') return;
+    state = 'awakening';
+    $tapHint.classList.add('hidden');
+    document.body.classList.add('awake');
+
+    setTimeout(() => {
+      showBubble('孩子,你来啦。是遇事不决,还是想知道什么事呢?');
+    }, 900);
+
+    setTimeout(() => {
+      hideBubble();
+    }, 4500);
+
+    setTimeout(() => {
+      showBubble('说罢。心里那件事。');
+      $input.classList.add('show');
+      $question.focus();
+      state = 'inputting';
+    }, 5100);
+  }
+
+  // ========= Step 2: User submits question =========
+  function submit() {
+    if (state !== 'inputting') return;
+    const q = $question.value.trim();
+    if (!q) {
+      $question.focus();
+      return;
+    }
+    state = 'casting';
+    $input.classList.remove('show');
+    hideBubble();
+
+    setTimeout(() => {
+      showBubble('容老朽起一卦。');
+    }, 600);
+
+    // Begin casting after the line "容老朽起一卦"
+    setTimeout(() => {
+      hideBubble();
+      castSequence(q);
+    }, 2400);
+  }
+
+  // ========= Step 3: Cast hexagram (lines drawing bottom-up) =========
+  function castSequence(question) {
+    const cast = castHexagram(question);
+    $tablet.classList.add('show');
+
+    const tabletLines = $tablet.querySelectorAll('.hex-line');
+    // tabletLines is in DOM order: pos=6 first, pos=1 last
+    // We want to animate from line 1 (bottom) to line 6 (top)
+    const orderedLines = Array.from(tabletLines).reverse(); // now pos=1 first
+
+    // Reset
+    orderedLines.forEach((el) => {
+      el.classList.remove('yang', 'yin', 'cast', 'changing');
+    });
+
+    // Draw each line with delay
+    orderedLines.forEach((el, i) => {
+      setTimeout(() => {
+        const isYang = cast.lines[i] === 1;
+        el.classList.add(isYang ? 'yang' : 'yin', 'cast');
+        if (i + 1 === cast.moving) el.classList.add('changing');
+      }, 400 + i * 700);
+    });
+
+    // After casting (~5s), start the meditation/quote phase
+    const castEndDelay = 400 + 6 * 700 + 600; // ~5200ms
+    setTimeout(() => {
+      $hexName.classList.add('show');
+      meditate(question);
+    }, castEndDelay);
+  }
+
+  // ========= Step 4: Meditation (quotes float, AI thinking) =========
+  let quoteIdx = 0;
+  let quoteTimer;
+  function meditate(question) {
+    state = 'meditating';
+    $quoteStage.classList.add('show');
+
+    // Pick 2-3 random quotes, show one at a time
+    const picks = [...QUOTES].sort(() => 0.5 - Math.random()).slice(0, 3);
+
+    function showQuote(i) {
+      if (i >= picks.length) {
+        // Stop showing quotes, prepare reveal
+        $quoteStage.classList.add('fade-out');
+        setTimeout(() => reveal(question), 1100);
+        return;
+      }
+      $quoteText.textContent = picks[i].text;
+      $quoteSource.textContent = picks[i].src;
+      $quoteText.classList.add('entering');
+      $quoteSource.classList.add('entering');
+      requestAnimationFrame(() => {
+        $quoteText.classList.remove('entering');
+        $quoteSource.classList.remove('entering');
+      });
+      // each quote: 3.2s on screen
+      quoteTimer = setTimeout(() => {
+        $quoteText.classList.add('entering');
+        $quoteSource.classList.add('entering');
+        setTimeout(() => showQuote(i + 1), 800);
+      }, 3200);
+    }
+    showQuote(0);
+  }
+
+  // ========= Step 5: Reveal — 夜→晨,verdict 大字浮现,laogui 跟随 =========
+  // 揭晓节奏:
+  //   T+0.0  老龟说「卦成。」
+  //   T+0.8  气泡淡出
+  //   T+1.2  大字 verdict 浮现(108pt 朱砂红)
+  //   T+2.7  verdict 缩小到 64pt 上移
+  //   T+3.0  laogui 一句浮现
+  //   T+4.5  底部按钮可见
+  function reveal(question) {
+    state = 'revealing';
+    document.body.classList.add('dawn');
+    $quoteStage.classList.remove('show');
+
+    // 阶段 A:从 mock 池随机抽。生产环境替换为 fetch('/api/divine')
+    const ans = ANSWERS[Math.floor(Math.random() * ANSWERS.length)];
+
+    const $verdict = document.getElementById('verdict');
+    const $laogui  = document.getElementById('laogui');
+    $verdict.textContent = ans.verdict;
+    $laogui.textContent  = ans.laogui;
+
+    // 老龟收尾的一句
+    setTimeout(() => showBubble('卦 成。'), 1000);
+
+    setTimeout(() => {
+      hideBubble();
+      $result.classList.add('show');
+
+      // verdict 入场(大字)
+      setTimeout(() => $verdict.classList.add('revealed'), 200);
+
+      // verdict 缩小(英雄帧 → 标题位)
+      setTimeout(() => $verdict.classList.add('shrunk'), 1600);
+
+      // laogui 浮现(由 CSS transition 中的 1800ms delay 控制)
+      setTimeout(() => $laogui.classList.add('revealed'), 200);
+
+      state = 'done';
+    }, 2400);
+  }
+
+  // ========= Reset / Ask Again =========
+  function askAgain() {
+    $result.classList.remove('show');
+    document.getElementById('verdict').classList.remove('revealed', 'shrunk');
+    document.getElementById('laogui').classList.remove('revealed');
+    document.body.classList.remove('dawn');
+    $hexName.classList.remove('show');
+    $tablet.classList.remove('show');
+    $tablet.querySelectorAll('.hex-line').forEach(el => {
+      el.classList.remove('yang', 'yin', 'cast', 'changing');
+    });
+    $question.value = '';
+    state = 'inputting';
+    setTimeout(() => {
+      showBubble('再问一桩心事吧。');
+      $input.classList.add('show');
+      $question.focus();
+    }, 800);
+  }
+
+  function farewell() {
+    showBubble('卦罢。事在人为。');
+    $result.classList.remove('show');
+    setTimeout(() => {
+      document.body.classList.remove('dawn', 'awake');
+      $tablet.classList.remove('show');
+      $tablet.querySelectorAll('.hex-line').forEach(el => {
+        el.classList.remove('yang', 'yin', 'cast', 'changing');
+      });
+      $hexName.classList.remove('show');
+      document.getElementById('verdict').classList.remove('revealed', 'shrunk');
+      document.getElementById('laogui').classList.remove('revealed');
+      $tapHint.classList.remove('hidden');
+      $question.value = '';
+      hideBubble();
+      state = 'idle';
+    }, 3000);
+  }
+
+  // ========= Event bindings =========
+  document.addEventListener('click', (e) => {
+    if (state === 'idle' && !e.target.closest('.input-row, .result, button')) {
+      wake();
+    }
+  });
+
+  $submit.addEventListener('click', submit);
+  $question.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') submit();
+  });
+
+  // Stop propagation on input area so clicks don't re-trigger wake
+  $input.addEventListener('click', (e) => e.stopPropagation());
+</script>
+
+</body>
+</html>
