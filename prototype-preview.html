@@ -345,6 +345,23 @@
   /* ============================================
      Tap Hint (initial)
      ============================================ */
+  /* 老龟此刻在做什么(活动文案,在 tap-hint 上方) */
+  .activity-caption {
+    position: absolute;
+    bottom: 17%;
+    left: 50%;
+    transform: translateX(-50%);
+    color: rgba(232, 201, 122, 0.7);
+    font-family: var(--serif);
+    font-size: 16px;
+    letter-spacing: 0.5em;
+    z-index: 6;
+    transition: opacity 800ms;
+    pointer-events: none;
+  }
+  .activity-caption.hidden { opacity: 0; }
+  body.dawn .activity-caption { color: var(--mist); }
+
   .tap-hint {
     position: absolute;
     bottom: 12%;
@@ -771,54 +788,6 @@
 
 <div class="scene">
 
-  <!-- ============================================
-       Stage 0 · 落地页(覆盖式,首次访问展示)
-       ============================================ -->
-  <div class="landing-overlay" id="landing-overlay">
-    <div class="landing-content">
-      <div class="landing-brand">天 意</div>
-
-      <h1 class="landing-tagline">纠 结 的 时 候<br>问 一 句 要 不 要</h1>
-      <p class="landing-subtitle">老 龟 听 你 说 这 些 事</p>
-
-      <div class="category-grid">
-        <button class="category-card" onclick="enterScene('工作')">
-          <div class="category-name">工 作</div>
-          <div class="category-example">进退与时机</div>
-        </button>
-        <button class="category-card" onclick="enterScene('感情')">
-          <div class="category-name">感 情</div>
-          <div class="category-example">心意与距离</div>
-        </button>
-        <button class="category-card" onclick="enterScene('消费')">
-          <div class="category-name">消 费</div>
-          <div class="category-example">取舍与冲动</div>
-        </button>
-        <button class="category-card" onclick="enterScene('健康')">
-          <div class="category-name">健 康</div>
-          <div class="category-example">担忧与就医</div>
-        </button>
-        <button class="category-card" onclick="enterScene('朋友')">
-          <div class="category-name">朋 友</div>
-          <div class="category-example">亲疏与信任</div>
-        </button>
-        <button class="category-card" onclick="enterScene('自己')">
-          <div class="category-name">自 己</div>
-          <div class="category-example">节奏与心力</div>
-        </button>
-      </div>
-
-      <button class="btn-enter" onclick="enterScene()">见 老 龟</button>
-
-      <p class="landing-note">心 里 那 件 事 · 写 在 这 里</p>
-
-      <p class="landing-disclaimer">
-        老龟把你的问题交给前沿推理的智者。<br>
-        别说给老龟你不愿被听到的事。
-      </p>
-    </div>
-  </div>
-
   <div class="moon"></div>
   <div class="brand">天 意</div>
 
@@ -976,6 +945,8 @@
   <div class="bubble" id="bubble"><span id="bubble-text"></span></div>
 
   <!-- Tap hint -->
+  <!-- 老龟此刻在做什么:文案 + 引导 -->
+  <div class="activity-caption" id="activity-caption">老 龟 在 打 盹</div>
   <div class="tap-hint" id="tap-hint">轻 触 唤 醒 老 龟</div>
 
   <!-- Input area -->
@@ -1101,8 +1072,73 @@
   const $quoteSource = document.getElementById('quote-source');
   const $result = document.getElementById('result');
 
-  let state = 'landing';   // 初始为 landing,enterScene() 后转 idle
+  let state = 'idle';   // 初始为 idle,首屏直接看见老龟在做该时辰的事
+
+  // ============================================
+  // 老龟此刻在做什么(时辰活动系统)
+  // ============================================
+  // 阶段 A:文案 + 状态机骨架。视觉装饰(茶杯/书/笔/小麻雀)留 阶段 B。
+  function getCurrentActivity() {
+    const h = new Date().getHours();
+    if (h >= 23 || h < 5)  return 'sleeping';
+    if (h < 7)             return 'practice';
+    if (h < 11)            return 'tea';
+    if (h < 13)            return 'reading';
+    if (h < 17)            return 'teaching';
+    if (h < 19)            return 'lake';
+    if (h < 21)            return 'rain';
+    return 'preparing-sleep';
+  }
+
+  const ACTIVITY_CAPTION = {
+    'sleeping':         '老 龟 在 打 盹',
+    'practice':         '老 龟 在 练 拳',
+    'tea':              '老 龟 在 烹 一 壶 茶',
+    'reading':          '老 龟 翻 着 一 卷 书',
+    'teaching':         '老 龟 在 教 小 徒 弟',
+    'lake':             '老 龟 看 着 湖',
+    'rain':             '老 龟 在 听 雨',
+    'preparing-sleep':  '老 龟 在 落 笔',
+  };
+
+  // 「轻触唤醒老龟」只在 sleeping 时用,其他活动用「轻触走近」
+  const ACTIVITY_HINT = {
+    'sleeping':         '轻 触 唤 醒 老 龟',
+    'practice':         '轻 触 走 近',
+    'tea':              '轻 触 走 近',
+    'reading':          '轻 触 走 近',
+    'teaching':         '轻 触 走 近',
+    'lake':             '轻 触 走 近',
+    'rain':             '轻 触 走 近',
+    'preparing-sleep':  '轻 触 走 近',
+  };
+
+  // 不同活动,老龟的开场白(被「走近」时说)
+  const ACTIVITY_GREETING = {
+    'sleeping':         '孩子,你来啦。是遇事不决,还是想知道什么事呢?',
+    'practice':         '呼——孩子,你来啦。坐。',
+    'tea':              '孩子,坐。茶刚好。是遇事不决?',
+    'reading':          '来了?让老朽把这一行读完。……是有事要问?',
+    'teaching':         '小麻雀先一边。孩子,你来啦,是有事?',
+    'lake':             '湖上风好。坐这里说。',
+    'rain':             '雨声里,什么事都听得见。说罢。',
+    'preparing-sleep':  '夜深了。心里那件事再压一晚不舒服?说罢。',
+  };
+
   let bubbleTimer;
+
+  const $activityCaption = document.getElementById('activity-caption');
+
+  // 根据当前时辰更新文案 + ZZZ 显示
+  function renderActivity() {
+    const a = getCurrentActivity();
+    $activityCaption.textContent = ACTIVITY_CAPTION[a] ?? '老 龟 在 默 坐';
+    $tapHint.textContent          = ACTIVITY_HINT[a]    ?? '轻 触 走 近';
+
+    // ZZZ 只在 sleeping 时显示,其他时辰隐藏
+    const $zzz = document.getElementById('zzz-stage');
+    $zzz.style.opacity = (a === 'sleeping') ? '' : '0';
+  }
 
   // Particles
   function spawnParticles() {
@@ -1136,10 +1172,13 @@
     if (state !== 'idle') return;
     state = 'awakening';
     $tapHint.classList.add('hidden');
+    $activityCaption.classList.add('hidden');
     document.body.classList.add('awake');
 
+    // 根据老龟当前在做什么,选不同开场白
+    const greeting = ACTIVITY_GREETING[getCurrentActivity()] ?? ACTIVITY_GREETING['sleeping'];
     setTimeout(() => {
-      showBubble('孩子,你来啦。是遇事不决,还是想知道什么事呢?');
+      showBubble(greeting);
     }, 900);
 
     setTimeout(() => {
@@ -1321,25 +1360,20 @@
       document.getElementById('verdict').classList.remove('revealed', 'shrunk');
       document.getElementById('laogui').classList.remove('revealed');
       $tapHint.classList.remove('hidden');
+      $activityCaption.classList.remove('hidden');
       $question.value = '';
       hideBubble();
 
-      // 辞别老龟 → 回到落地页(完整重启体验)
-      document.getElementById('landing-overlay').classList.remove('dismissed');
-
-      state = 'landing';
+      // 辞别老龟 → 回到「老龟此刻在做什么」(刷新一次活动,可能时辰已经变了)
+      renderActivity();
+      state = 'idle';
     }, 3000);
   }
 
-  // ========= Stage 0 → Stage 1:从落地页进入老龟场景 =========
-  function enterScene(category) {
-    if (category && PROMPT_CATEGORIES[category]) {
-      currentPromptCategory = category;
-    }
-    document.getElementById('landing-overlay').classList.add('dismissed');
-    state = 'idle';
-    // 不自动唤醒老龟,保留「轻触唤醒」的仪式感
-  }
+  // ========= 启动:立即按当前时辰渲染老龟在做什么 =========
+  renderActivity();
+  // 每分钟检查一次时辰是否切换(用户长时间停留时也会更新)
+  setInterval(() => { if (state === 'idle') renderActivity(); }, 60000);
 
   // ========= 漂浮短句气泡(Apple Music 风)=========
   const PROMPT_CATEGORIES = {
@@ -1520,4 +1554,55 @@
 </script>
 
 </body>
+</html>
+);
+        $b.classList.add("tapped");
+        $question.value = text;
+        $question.focus();
+        $promptStage.querySelectorAll(".prompt-bubble:not(.tapped)").forEach(el => {
+          el.style.opacity = "0.2";
+          el.style.transition = "opacity 400ms";
+        });
+      };
+      $promptStage.appendChild($b);
+    });
+  }
+
+  function showPrompts() {
+    renderPrompts();
+    $promptStage.classList.add("show");
+    $categorySwitch.classList.add("show");
+  }
+
+  function hidePrompts() {
+    $promptStage.classList.remove("show");
+    $categorySwitch.classList.remove("show");
+  }
+
+  function cyclePromptCategory() {
+    const idx = PROMPT_CATEGORY_ORDER.indexOf(currentPromptCategory);
+    currentPromptCategory = PROMPT_CATEGORY_ORDER[(idx + 1) % PROMPT_CATEGORY_ORDER.length];
+    renderPrompts();
+  }
+
+  // 启动：立即按当前时辰渲染老龟在做什么
+  renderActivity();
+  setInterval(() => { if (state === "idle") renderActivity(); }, 60000);
+
+  // event bindings
+  document.addEventListener("click", (e) => {
+    if (state === "idle" && !e.target.closest(".input-row, .result, button, .prompt-bubble, .category-switch")) {
+      wake();
+    }
+  });
+  $submit.addEventListener("click", submit);
+  $question.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") submit();
+  });
+  $input.addEventListener("click", (e) => e.stopPropagation());
+</script>
+
+</body>
+</html>
+dy>
 </html>
