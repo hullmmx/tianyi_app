@@ -448,6 +448,121 @@
   }
   .result::-webkit-scrollbar { display: none; }
 
+  /* ============================================
+     Stage 0 · Landing(覆盖式落地页)
+     ============================================ */
+  .landing-overlay {
+    position: absolute;
+    inset: 0;
+    z-index: 100;
+    background: radial-gradient(ellipse at 50% 50%, #2D2620 0%, #1A1612 90%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow-y: auto;
+    transition: opacity 1000ms var(--ease-soft);
+  }
+  .landing-overlay::-webkit-scrollbar { display: none; }
+  .landing-overlay.dismissed {
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .landing-content {
+    width: 100%;
+    max-width: 480px;
+    padding: 80px 32px 60px;
+    text-align: center;
+  }
+
+  .landing-brand {
+    font-family: var(--serif);
+    font-size: 14px;
+    letter-spacing: 0.7em;
+    color: rgba(232, 201, 122, 0.55);
+    margin-bottom: 56px;
+  }
+
+  .landing-tagline {
+    font-family: var(--serif);
+    font-size: 28px;
+    font-weight: 500;
+    letter-spacing: 0.12em;
+    color: rgba(245, 240, 224, 0.95);
+    line-height: 1.7;
+    margin: 0 0 12px;
+  }
+
+  .landing-subtitle {
+    font-family: var(--serif);
+    font-size: 13px;
+    letter-spacing: 0.5em;
+    color: rgba(232, 201, 122, 0.55);
+    margin: 0 0 56px;
+  }
+
+  .category-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    margin-bottom: 48px;
+  }
+
+  .category-card {
+    background: transparent;
+    border: 1px solid rgba(232, 201, 122, 0.22);
+    padding: 22px 6px 18px;
+    cursor: pointer;
+    transition: all 300ms var(--ease-soft);
+    text-align: center;
+    font-family: var(--serif);
+  }
+  .category-card:hover, .category-card:active {
+    border-color: rgba(232, 201, 122, 0.65);
+    background: rgba(232, 201, 122, 0.06);
+    transform: translateY(-1px);
+  }
+
+  .category-name {
+    font-size: 17px;
+    letter-spacing: 0.3em;
+    color: rgba(245, 240, 224, 0.92);
+    margin-bottom: 10px;
+  }
+
+  .category-example {
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    color: rgba(232, 201, 122, 0.5);
+  }
+
+  .btn-enter {
+    background: transparent;
+    border: 1px solid rgba(232, 201, 122, 0.5);
+    color: rgba(245, 240, 224, 0.95);
+    font-family: var(--serif);
+    font-size: 16px;
+    letter-spacing: 0.5em;
+    padding: 16px 48px;
+    cursor: pointer;
+    margin-bottom: 40px;
+    transition: all 300ms var(--ease-soft);
+  }
+  .btn-enter:hover, .btn-enter:active {
+    border-color: rgba(232, 201, 122, 0.9);
+    background: rgba(232, 201, 122, 0.08);
+  }
+
+  .landing-disclaimer {
+    font-family: var(--serif);
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    line-height: 2;
+    color: rgba(232, 201, 122, 0.38);
+    margin: 0 auto;
+    max-width: 320px;
+  }
+
   /* Verdict — 朱砂大字,英雄帧 */
   .verdict-stage {
     display: flex;
@@ -541,6 +656,52 @@
 <body>
 
 <div class="scene">
+
+  <!-- ============================================
+       Stage 0 · 落地页(覆盖式,首次访问展示)
+       ============================================ -->
+  <div class="landing-overlay" id="landing-overlay">
+    <div class="landing-content">
+      <div class="landing-brand">天 意</div>
+
+      <h1 class="landing-tagline">纠 结 的 时 候<br>问 一 句 要 不 要</h1>
+      <p class="landing-subtitle">老 龟 听 你 说 这 些 事</p>
+
+      <div class="category-grid">
+        <button class="category-card" onclick="enterScene()">
+          <div class="category-name">工 作</div>
+          <div class="category-example">要不要换工作</div>
+        </button>
+        <button class="category-card" onclick="enterScene()">
+          <div class="category-name">感 情</div>
+          <div class="category-example">要不要在一起</div>
+        </button>
+        <button class="category-card" onclick="enterScene()">
+          <div class="category-name">消 费</div>
+          <div class="category-example">要不要买</div>
+        </button>
+        <button class="category-card" onclick="enterScene()">
+          <div class="category-name">家 庭</div>
+          <div class="category-example">要不要回家</div>
+        </button>
+        <button class="category-card" onclick="enterScene()">
+          <div class="category-name">朋 友</div>
+          <div class="category-example">要不要合伙</div>
+        </button>
+        <button class="category-card" onclick="enterScene()">
+          <div class="category-name">自 己</div>
+          <div class="category-example">要不要试试</div>
+        </button>
+      </div>
+
+      <button class="btn-enter" onclick="enterScene()">见 老 龟</button>
+
+      <p class="landing-disclaimer">
+        老龟把你的问题交给前沿推理的智者。<br>
+        别说给老龟你不愿被听到的事。
+      </p>
+    </div>
+  </div>
 
   <div class="moon"></div>
   <div class="brand">天 意</div>
@@ -815,7 +976,7 @@
   const $quoteSource = document.getElementById('quote-source');
   const $result = document.getElementById('result');
 
-  let state = 'idle';
+  let state = 'landing';   // 初始为 landing,enterScene() 后转 idle
   let bubbleTimer;
 
   // Particles
@@ -1034,8 +1195,20 @@
       $tapHint.classList.remove('hidden');
       $question.value = '';
       hideBubble();
-      state = 'idle';
+
+      // 辞别老龟 → 回到落地页(完整重启体验)
+      document.getElementById('landing-overlay').classList.remove('dismissed');
+
+      state = 'landing';
     }, 3000);
+  }
+
+  // ========= Stage 0 → Stage 1:从落地页进入老龟场景 =========
+  function enterScene() {
+    document.getElementById('landing-overlay').classList.add('dismissed');
+    state = 'idle';
+    // 不自动唤醒老龟,保留「轻触唤醒」的仪式感
+    // 用户进入后看到:打盹的老龟 + ZZZ + 「轻触唤醒老龟」提示
   }
 
   // ========= Event bindings =========
@@ -1051,6 +1224,89 @@
   });
 
   // Stop propagation on input area so clicks don't re-trigger wake
+  $input.addEventListener('click', (e) => e.stopPropagation());
+</script>
+
+</body>
+</html>
+ealed'), 200);
+
+      // verdict 缩小(英雄帧 → 标题位)
+      setTimeout(() => $verdict.classList.add('shrunk'), 1600);
+
+      // laogui 浮现(由 CSS transition 中的 1800ms delay 控制)
+      setTimeout(() => $laogui.classList.add('revealed'), 200);
+
+      state = 'done';
+    }, 2400);
+  }
+
+  // ========= Reset / Ask Again =========
+  function askAgain() {
+    $result.classList.remove('show');
+    document.getElementById('verdict').classList.remove('revealed', 'shrunk');
+    document.getElementById('laogui').classList.remove('revealed');
+    document.body.classList.remove('dawn');
+    $hexName.classList.remove('show');
+    $tablet.classList.remove('show');
+    $tablet.querySelectorAll('.hex-line').forEach(el => {
+      el.classList.remove('yang', 'yin', 'cast', 'changing');
+    });
+    $question.value = '';
+    state = 'inputting';
+    setTimeout(() => {
+      showBubble('再问一桩心事吧。');
+      $input.classList.add('show');
+      $question.focus();
+    }, 800);
+  }
+
+  function farewell() {
+    showBubble('卦罢。事在人为。');
+    $result.classList.remove('show');
+    setTimeout(() => {
+      document.body.classList.remove('dawn', 'awake');
+      $tablet.classList.remove('show');
+      $tablet.querySelectorAll('.hex-line').forEach(el => {
+        el.classList.remove('yang', 'yin', 'cast', 'changing');
+      });
+      $hexName.classList.remove('show');
+      document.getElementById('verdict').classList.remove('revealed', 'shrunk');
+      document.getElementById('laogui').classList.remove('revealed');
+      $tapHint.classList.remove('hidden');
+      $question.value = '';
+      hideBubble();
+      // 辞别老龟 → 回到落地页(完整重启体验)
+      document.getElementById('landing-overlay').classList.remove('dismissed');
+      state = 'landing';
+    }, 3000);
+  }
+
+  // ========= Stage 0 → 1:从落地页进入老龟场景 =========
+  function enterScene() {
+    document.getElementById('landing-overlay').classList.add('dismissed');
+    state = 'idle';
+    // 不自动唤醒,保留「轻触唤醒老龟」的仪式感
+  }
+
+  // ========= Event bindings =========
+  document.addEventListener('click', (e) => {
+    if (state === 'idle' && !e.target.closest('.input-row, .result, button, .landing-overlay')) {
+      wake();
+    }
+  });
+
+  $submit.addEventListener('click', submit);
+  $question.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') submit();
+  });
+
+  $input.addEventListener('click', (e) => e.stopPropagation());
+</script>
+
+</body>
+</html>
+tion on input area so clicks don't re-trigger wake
   $input.addEventListener('click', (e) => e.stopPropagation());
 </script>
 
