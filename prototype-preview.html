@@ -197,6 +197,112 @@
   }
 
   /* ============================================
+     Floating Prompt Bubbles(Apple Music 风)
+     ============================================ */
+  .prompt-stage {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 4;
+    opacity: 0;
+    transition: opacity 800ms var(--ease-soft);
+  }
+  .prompt-stage.show {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  .prompt-bubble {
+    position: absolute;
+    background: rgba(245, 240, 224, 0.06);
+    border: 1px solid rgba(232, 201, 122, 0.35);
+    color: rgba(245, 240, 224, 0.88);
+    font-family: var(--serif);
+    font-size: 14px;
+    letter-spacing: 0.08em;
+    padding: 10px 18px;
+    border-radius: 100px;
+    cursor: pointer;
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    user-select: none;
+    transition: all 300ms var(--ease-soft);
+    animation: prompt-drift 14s ease-in-out infinite;
+  }
+  .prompt-bubble:hover, .prompt-bubble:active {
+    background: rgba(232, 201, 122, 0.18);
+    border-color: rgba(232, 201, 122, 0.85);
+    color: rgba(245, 240, 224, 1);
+    transform: scale(1.05);
+  }
+  .prompt-bubble.tapped {
+    opacity: 0;
+    transform: scale(0.7) translateY(-30px);
+    transition: all 600ms var(--ease-soft);
+  }
+
+  body.dawn .prompt-bubble {
+    background: rgba(42, 37, 32, 0.06);
+    border-color: rgba(42, 37, 32, 0.3);
+    color: var(--ink-soft);
+  }
+
+  /* 6 个 bubble 各自的漂浮节奏(错峰) */
+  .prompt-bubble:nth-child(1) { animation-duration: 11s; animation-delay:  0s; }
+  .prompt-bubble:nth-child(2) { animation-duration: 13s; animation-delay: -3s; }
+  .prompt-bubble:nth-child(3) { animation-duration: 15s; animation-delay: -6s; }
+  .prompt-bubble:nth-child(4) { animation-duration: 12s; animation-delay: -2s; }
+  .prompt-bubble:nth-child(5) { animation-duration: 14s; animation-delay: -8s; }
+
+  @keyframes prompt-drift {
+    0%, 100% { transform: translate(0, 0); }
+    25%      { transform: translate(12px, -10px); }
+    50%      { transform: translate(-8px, 8px); }
+    75%      { transform: translate(10px, 4px); }
+  }
+
+  /* 换一种 切换按钮 */
+  .category-switch {
+    position: absolute;
+    top: 28px;
+    right: 24px;
+    z-index: 8;
+    background: rgba(245, 240, 224, 0.04);
+    border: 1px solid rgba(232, 201, 122, 0.3);
+    color: rgba(232, 201, 122, 0.75);
+    font-family: var(--serif);
+    font-size: 11px;
+    letter-spacing: 0.3em;
+    padding: 8px 16px;
+    border-radius: 100px;
+    cursor: pointer;
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    transition: all 300ms;
+    opacity: 0;
+    pointer-events: none;
+  }
+  .category-switch.show {
+    opacity: 1;
+    pointer-events: auto;
+  }
+  .category-switch:hover {
+    background: rgba(232, 201, 122, 0.12);
+    border-color: rgba(232, 201, 122, 0.7);
+    color: rgba(245, 240, 224, 0.95);
+  }
+  .category-switch .icon {
+    margin-right: 4px;
+    font-size: 13px;
+  }
+
+  body.dawn .category-switch {
+    background: rgba(42, 37, 32, 0.04);
+    border-color: rgba(42, 37, 32, 0.3);
+    color: var(--mist);
+  }
+
+  /* ============================================
      Speech Bubble
      ============================================ */
   .bubble {
@@ -553,6 +659,14 @@
     background: rgba(232, 201, 122, 0.08);
   }
 
+  .landing-note {
+    font-family: var(--serif);
+    font-size: 12px;
+    letter-spacing: 0.4em;
+    color: rgba(232, 201, 122, 0.5);
+    margin: -16px 0 32px;
+  }
+
   .landing-disclaimer {
     font-family: var(--serif);
     font-size: 11px;
@@ -668,33 +782,35 @@
       <p class="landing-subtitle">老 龟 听 你 说 这 些 事</p>
 
       <div class="category-grid">
-        <button class="category-card" onclick="enterScene()">
+        <button class="category-card" onclick="enterScene('工作')">
           <div class="category-name">工 作</div>
-          <div class="category-example">要不要换工作</div>
+          <div class="category-example">进退与时机</div>
         </button>
-        <button class="category-card" onclick="enterScene()">
+        <button class="category-card" onclick="enterScene('感情')">
           <div class="category-name">感 情</div>
-          <div class="category-example">要不要在一起</div>
+          <div class="category-example">心意与距离</div>
         </button>
-        <button class="category-card" onclick="enterScene()">
+        <button class="category-card" onclick="enterScene('消费')">
           <div class="category-name">消 费</div>
-          <div class="category-example">要不要买</div>
+          <div class="category-example">取舍与冲动</div>
         </button>
-        <button class="category-card" onclick="enterScene()">
-          <div class="category-name">家 庭</div>
-          <div class="category-example">要不要回家</div>
+        <button class="category-card" onclick="enterScene('健康')">
+          <div class="category-name">健 康</div>
+          <div class="category-example">担忧与就医</div>
         </button>
-        <button class="category-card" onclick="enterScene()">
+        <button class="category-card" onclick="enterScene('朋友')">
           <div class="category-name">朋 友</div>
-          <div class="category-example">要不要合伙</div>
+          <div class="category-example">亲疏与信任</div>
         </button>
-        <button class="category-card" onclick="enterScene()">
+        <button class="category-card" onclick="enterScene('自己')">
           <div class="category-name">自 己</div>
-          <div class="category-example">要不要试试</div>
+          <div class="category-example">节奏与心力</div>
         </button>
       </div>
 
       <button class="btn-enter" onclick="enterScene()">见 老 龟</button>
+
+      <p class="landing-note">心 里 那 件 事 · 写 在 这 里</p>
 
       <p class="landing-disclaimer">
         老龟把你的问题交给前沿推理的智者。<br>
@@ -828,6 +944,15 @@
       <circle cx="372" cy="198" r="0.9" data-ink fill-opacity="0.65"/>
     </svg>
   </div>
+
+  <!-- ============================================
+       漂浮短句气泡(输入态)+ 换一种按钮
+       ============================================ -->
+  <div class="prompt-stage" id="prompt-stage"></div>
+
+  <button class="category-switch" id="category-switch" onclick="cyclePromptCategory()">
+    <span class="icon">↻</span>换 一 种
+  </button>
 
   <!-- ZZZ (sleeping) -->
   <div class="zzz-stage" id="zzz-stage">
@@ -1026,6 +1151,7 @@
       $input.classList.add('show');
       $question.focus();
       state = 'inputting';
+      showPrompts();   // 漂浮短句气泡 + 换一种按钮
     }, 5100);
   }
 
@@ -1040,6 +1166,7 @@
     state = 'casting';
     $input.classList.remove('show');
     hideBubble();
+    hidePrompts();   // 隐藏漂浮气泡和换一种按钮
 
     setTimeout(() => {
       showBubble('容老朽起一卦。');
@@ -1177,6 +1304,7 @@
       showBubble('再问一桩心事吧。');
       $input.classList.add('show');
       $question.focus();
+      showPrompts();   // 再问一卦时也显示气泡(可换一种)
     }, 800);
   }
 
@@ -1204,16 +1332,87 @@
   }
 
   // ========= Stage 0 → Stage 1:从落地页进入老龟场景 =========
-  function enterScene() {
+  function enterScene(category) {
+    if (category && PROMPT_CATEGORIES[category]) {
+      currentPromptCategory = category;
+    }
     document.getElementById('landing-overlay').classList.add('dismissed');
     state = 'idle';
     // 不自动唤醒老龟,保留「轻触唤醒」的仪式感
-    // 用户进入后看到:打盹的老龟 + ZZZ + 「轻触唤醒老龟」提示
+  }
+
+  // ========= 漂浮短句气泡(Apple Music 风)=========
+  const PROMPT_CATEGORIES = {
+    工作: ['辞职', '跳槽', '换工作', '请假', '提加薪'],
+    感情: ['表白', '复合', '分手', '回他', '等下去'],
+    消费: ['买这个', '换新的', '剁手', '等降价', '退掉'],
+    健康: ['看医生', '吃这药', '做检查', '戒掉它', '多休息'],
+    朋友: ['合伙', '聚会', '请他帮', '拒绝他', '绝交'],
+    自己: ['试一试', '早睡', '剪头发', '健身', '写日记']
+  };
+  const PROMPT_CATEGORY_ORDER = ['工作', '感情', '消费', '健康', '朋友', '自己'];
+  let currentPromptCategory = '工作';
+
+  const $promptStage    = document.getElementById('prompt-stage');
+  const $categorySwitch = document.getElementById('category-switch');
+
+  // 漂浮位置:错峰分布在屏幕上半段(避开老龟和输入框)
+  function pickPromptPosition(idx) {
+    const zones = [
+      { left:  8, top: 28 },
+      { left: 56, top: 32 },
+      { left: 14, top: 46 },
+      { left: 60, top: 50 },
+      { left: 32, top: 24 },
+    ];
+    return zones[idx % zones.length];
+  }
+
+  function renderPrompts() {
+    const list = PROMPT_CATEGORIES[currentPromptCategory];
+    $promptStage.innerHTML = '';
+    list.forEach((text, i) => {
+      const $b = document.createElement('div');
+      $b.className = 'prompt-bubble';
+      $b.textContent = '要 不 要 ' + text;
+      const pos = pickPromptPosition(i);
+      $b.style.left = pos.left + '%';
+      $b.style.top  = pos.top + '%';
+      $b.onclick = (e) => {
+        e.stopPropagation();
+        $b.classList.add('tapped');
+        $question.value = text;
+        $question.focus();
+        // 其他 bubble 渐隐(被选中的视觉强调)
+        $promptStage.querySelectorAll('.prompt-bubble:not(.tapped)').forEach(el => {
+          el.style.opacity = '0.2';
+          el.style.transition = 'opacity 400ms';
+        });
+      };
+      $promptStage.appendChild($b);
+    });
+  }
+
+  function showPrompts() {
+    renderPrompts();
+    $promptStage.classList.add('show');
+    $categorySwitch.classList.add('show');
+  }
+
+  function hidePrompts() {
+    $promptStage.classList.remove('show');
+    $categorySwitch.classList.remove('show');
+  }
+
+  function cyclePromptCategory() {
+    const idx = PROMPT_CATEGORY_ORDER.indexOf(currentPromptCategory);
+    currentPromptCategory = PROMPT_CATEGORY_ORDER[(idx + 1) % PROMPT_CATEGORY_ORDER.length];
+    renderPrompts();
   }
 
   // ========= Event bindings =========
   document.addEventListener('click', (e) => {
-    if (state === 'idle' && !e.target.closest('.input-row, .result, button')) {
+    if (state === 'idle' && !e.target.closest('.input-row, .result, button, .landing-overlay, .prompt-bubble, .category-switch')) {
       wake();
     }
   });
@@ -1229,69 +1428,72 @@
 
 </body>
 </html>
-ealed'), 200);
+, '等降价', '退掉'],
+    健康: ['看医生', '吃这药', '做检查', '戒掉它', '多休息'],
+    朋友: ['合伙', '聚会', '请他帮', '拒绝他', '绝交'],
+    自己: ['试一试', '早睡', '剪头发', '健身', '写日记']
+  };
+  const PROMPT_CATEGORY_ORDER = ['工作', '感情', '消费', '健康', '朋友', '自己'];
+  let currentPromptCategory = '工作';
 
-      // verdict 缩小(英雄帧 → 标题位)
-      setTimeout(() => $verdict.classList.add('shrunk'), 1600);
+  const $promptStage    = document.getElementById('prompt-stage');
+  const $categorySwitch = document.getElementById('category-switch');
 
-      // laogui 浮现(由 CSS transition 中的 1800ms delay 控制)
-      setTimeout(() => $laogui.classList.add('revealed'), 200);
-
-      state = 'done';
-    }, 2400);
+  function pickPromptPosition(idx) {
+    const zones = [
+      { left:  8, top: 28 },
+      { left: 56, top: 32 },
+      { left: 14, top: 46 },
+      { left: 60, top: 50 },
+      { left: 32, top: 24 },
+    ];
+    return zones[idx % zones.length];
   }
 
-  // ========= Reset / Ask Again =========
-  function askAgain() {
-    $result.classList.remove('show');
-    document.getElementById('verdict').classList.remove('revealed', 'shrunk');
-    document.getElementById('laogui').classList.remove('revealed');
-    document.body.classList.remove('dawn');
-    $hexName.classList.remove('show');
-    $tablet.classList.remove('show');
-    $tablet.querySelectorAll('.hex-line').forEach(el => {
-      el.classList.remove('yang', 'yin', 'cast', 'changing');
+  function renderPrompts() {
+    const list = PROMPT_CATEGORIES[currentPromptCategory];
+    $promptStage.innerHTML = '';
+    list.forEach((text, i) => {
+      const $b = document.createElement('div');
+      $b.className = 'prompt-bubble';
+      $b.textContent = '要 不 要 ' + text;
+      const pos = pickPromptPosition(i);
+      $b.style.left = pos.left + '%';
+      $b.style.top  = pos.top + '%';
+      $b.onclick = (e) => {
+        e.stopPropagation();
+        $b.classList.add('tapped');
+        $question.value = text;
+        $question.focus();
+        $promptStage.querySelectorAll('.prompt-bubble:not(.tapped)').forEach(el => {
+          el.style.opacity = '0.2';
+          el.style.transition = 'opacity 400ms';
+        });
+      };
+      $promptStage.appendChild($b);
     });
-    $question.value = '';
-    state = 'inputting';
-    setTimeout(() => {
-      showBubble('再问一桩心事吧。');
-      $input.classList.add('show');
-      $question.focus();
-    }, 800);
   }
 
-  function farewell() {
-    showBubble('卦罢。事在人为。');
-    $result.classList.remove('show');
-    setTimeout(() => {
-      document.body.classList.remove('dawn', 'awake');
-      $tablet.classList.remove('show');
-      $tablet.querySelectorAll('.hex-line').forEach(el => {
-        el.classList.remove('yang', 'yin', 'cast', 'changing');
-      });
-      $hexName.classList.remove('show');
-      document.getElementById('verdict').classList.remove('revealed', 'shrunk');
-      document.getElementById('laogui').classList.remove('revealed');
-      $tapHint.classList.remove('hidden');
-      $question.value = '';
-      hideBubble();
-      // 辞别老龟 → 回到落地页(完整重启体验)
-      document.getElementById('landing-overlay').classList.remove('dismissed');
-      state = 'landing';
-    }, 3000);
+  function showPrompts() {
+    renderPrompts();
+    $promptStage.classList.add('show');
+    $categorySwitch.classList.add('show');
   }
 
-  // ========= Stage 0 → 1:从落地页进入老龟场景 =========
-  function enterScene() {
-    document.getElementById('landing-overlay').classList.add('dismissed');
-    state = 'idle';
-    // 不自动唤醒,保留「轻触唤醒老龟」的仪式感
+  function hidePrompts() {
+    $promptStage.classList.remove('show');
+    $categorySwitch.classList.remove('show');
+  }
+
+  function cyclePromptCategory() {
+    const idx = PROMPT_CATEGORY_ORDER.indexOf(currentPromptCategory);
+    currentPromptCategory = PROMPT_CATEGORY_ORDER[(idx + 1) % PROMPT_CATEGORY_ORDER.length];
+    renderPrompts();
   }
 
   // ========= Event bindings =========
   document.addEventListener('click', (e) => {
-    if (state === 'idle' && !e.target.closest('.input-row, .result, button, .landing-overlay')) {
+    if (state === 'idle' && !e.target.closest('.input-row, .result, button, .landing-overlay, .prompt-bubble, .category-switch')) {
       wake();
     }
   });
@@ -1306,8 +1508,15 @@ ealed'), 200);
 
 </body>
 </html>
-tion on input area so clicks don't re-trigger wake
+    if (e.key === 'Enter') submit();
+  });
+
   $input.addEventListener('click', (e) => e.stopPropagation());
+</script>
+
+</body>
+</html>
+('click', (e) => e.stopPropagation());
 </script>
 
 </body>
