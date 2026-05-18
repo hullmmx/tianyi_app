@@ -5,516 +5,540 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>天意 · 小乌龟问卦</title>
 <style>
-  :root {
-    --paper:        #F0EAD8;
-    --paper-warm:   #E8DCC5;
-    --paper-deep:   #DCC9AE;
-    --ink:          #1A1612;
-    --ink-soft:     #3D362F;
-    --mist:         #8A7F70;
-    --mist-light:   #B8AC98;
-    --vermillion:   #B23A1F;
-    --vermillion-d: #7A1F0C;
-    --skin:         #7C8B65;
-    --shell:        #9C7E50;
-    --serif:  'Noto Serif TC','Source Han Serif TC','Songti TC','STSong',serif;
-  }
-  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-  html, body { margin: 0; padding: 0; height: 100%; font-family: var(--serif); }
-  body {
-    background: var(--paper);
-    color: var(--ink);
-    -webkit-font-smoothing: antialiased;
-    display: flex;
-    justify-content: center;
-  }
-  .app {
-    width: 100%;
-    max-width: 480px;
-    height: 100vh;
-    display: flex;
-    flex-direction: column;
-    background: var(--paper);
-    border-left: 1px solid var(--paper-deep);
-    border-right: 1px solid var(--paper-deep);
-  }
+:root {
+  --paper: #F0EAD8; --paper-warm: #E8DCC5; --paper-deep: #DCC9AE;
+  --night: #1F1A14; --ink: #1A1612; --ink-soft: #3D362F;
+  --mist: #8A7F70; --mist-light: #B8AC98;
+  --vermillion: #B23A1F; --vermillion-d: #7A1F0C;
+  --skin: #7C8B65; --shell: #9C7E50;
+  --serif: 'Noto Serif TC','Source Han Serif TC','Songti TC','STSong',serif;
+}
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+html, body { margin: 0; padding: 0; height: 100%; font-family: var(--serif);
+  overflow: hidden; user-select: none; -webkit-user-select: none; }
+body { background: var(--night); display: flex; justify-content: center; }
 
-  /* ============================================
-     Header — 角色 + 此刻在做什么
-     ============================================ */
-  .chat-header {
-    flex-shrink: 0;
-    padding: 16px 20px 14px;
-    border-bottom: 1px solid var(--paper-deep);
-    background: var(--paper);
-    position: sticky;
-    top: 0;
-    z-index: 5;
-  }
-  .brand {
-    font-size: 11px;
-    letter-spacing: 0.6em;
-    color: var(--mist);
-    margin-bottom: 12px;
-  }
-  .character {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-  }
-  .avatar {
-    width: 44px;
-    height: 44px;
-    border-radius: 50%;
-    background: var(--paper-warm);
-    border: 1px solid var(--ink);
-    flex-shrink: 0;
-  }
-  .character-info { flex: 1; min-width: 0; }
-  .character-name {
-    font-size: 16px;
-    color: var(--ink);
-    letter-spacing: 0.25em;
-    font-weight: 500;
-  }
-  .character-status {
-    font-size: 11px;
-    color: var(--mist);
-    letter-spacing: 0.2em;
-    margin-top: 3px;
-  }
-  .character-status::before {
-    content: '●';
-    color: var(--skin);
-    margin-right: 6px;
-    font-size: 8px;
-    vertical-align: middle;
-  }
+.game { position: relative; width: 100%; max-width: 480px; height: 100vh;
+  overflow: hidden;
+  background: radial-gradient(ellipse at 50% 40%, #2D2620 0%, #1A1612 90%); }
 
-  /* ============================================
-     Chat messages
-     ============================================ */
-  .chat-messages {
-    flex: 1;
-    overflow-y: auto;
-    padding: 20px 16px 24px;
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    scroll-behavior: smooth;
-  }
-  .chat-messages::-webkit-scrollbar {
-    width: 4px;
-  }
-  .chat-messages::-webkit-scrollbar-thumb {
-    background: var(--paper-deep);
-    border-radius: 2px;
-  }
+.scene { position: absolute; top: 0; left: 0; right: 0; height: 62%; overflow: hidden; }
+.moon { position: absolute; top: 8%; right: 12%; width: 60px; height: 60px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 35%, rgba(232,201,122,0.55), rgba(232,201,122,0.12) 70%, transparent);
+  filter: blur(0.4px); }
+.brand { position: absolute; top: 40px; left: 50%; transform: translateX(-50%);
+  font-size: 11px; letter-spacing: 0.7em; color: rgba(232,201,122,0.55); z-index: 3; }
 
-  .msg-row {
-    display: flex;
-    align-items: flex-end;
-    gap: 8px;
-    max-width: 100%;
-    animation: msg-in 400ms cubic-bezier(0.16, 1, 0.3, 1);
-  }
-  .msg-row.user { justify-content: flex-end; }
+.particles { position: absolute; inset: 0; pointer-events: none; }
+.particle { position: absolute; width: 2px; height: 2px;
+  background: rgba(232,201,122,0.4); border-radius: 50%; bottom: -10px;
+  animation: float-up 14s linear infinite; }
+@keyframes float-up {
+  0% { transform: translateY(0); opacity: 0; }
+  15% { opacity: 1; }
+  100% { transform: translateY(-70vh); opacity: 0; }
+}
 
-  @keyframes msg-in {
-    from { opacity: 0; transform: translateY(8px); }
-    to   { opacity: 1; transform: translateY(0); }
-  }
+.character-stage { position: absolute; bottom: 0; left: 50%;
+  transform: translateX(-50%); width: 220px; height: 220px; }
+.character-art { width: 100%; height: 100%;
+  filter: drop-shadow(0 0 24px rgba(232,201,122,0.18)); }
 
-  .msg-avatar {
-    width: 32px;
-    height: 32px;
-    border-radius: 50%;
-    background: var(--paper-warm);
-    border: 1px solid var(--ink);
-    flex-shrink: 0;
-    margin-bottom: 2px;
-  }
+.activity { position: absolute; top: 80px; left: 50%; transform: translateX(-50%);
+  color: rgba(232,201,122,0.7); font-size: 13px; letter-spacing: 0.4em; z-index: 3; }
+.activity::before { content: '●'; color: var(--skin); margin-right: 8px;
+  font-size: 7px; vertical-align: middle; opacity: 0.8; }
 
-  .bubble {
-    padding: 11px 16px;
-    border-radius: 16px;
-    font-size: 16px;
-    line-height: 1.65;
-    letter-spacing: 0.04em;
-    max-width: 76%;
-    word-wrap: break-word;
-    font-family: var(--serif);
-  }
+.verdict-stage { position: absolute; inset: 0; display: flex;
+  align-items: center; justify-content: center; z-index: 10;
+  pointer-events: none; background: rgba(0,0,0,0); transition: background 600ms; }
+.verdict-stage.show { background: rgba(0,0,0,0.35); }
 
-  /* Turtle bubbles (left, cream) */
-  .bubble.turtle {
-    background: var(--paper-warm);
-    color: var(--ink);
-    border-bottom-left-radius: 4px;
-    border: 1px solid var(--paper-deep);
-  }
+.verdict-seal { background: var(--vermillion); color: var(--paper);
+  font-size: 120px; font-weight: 500; padding: 22px 50px;
+  border-radius: 6px; border: 2px solid var(--vermillion-d);
+  box-shadow: 0 0 0 6px var(--paper), 0 0 0 7px var(--vermillion),
+    0 14px 40px rgba(0,0,0,0.55);
+  line-height: 1; opacity: 0;
+  transform: translateY(-80vh) rotate(-18deg) scale(2.2); position: relative; }
+.verdict-seal.drop { animation: seal-drop 1100ms cubic-bezier(0.6,0,0.35,1.2) forwards; }
+.verdict-seal.fade-out { animation: seal-fade 600ms ease-in forwards; }
+@keyframes seal-drop {
+  0% { opacity: 0; transform: translateY(-80vh) rotate(-22deg) scale(2.4); }
+  55% { opacity: 1; transform: translateY(18px) rotate(-3deg) scale(1.08); }
+  72% { transform: translateY(-12px) rotate(-3.5deg) scale(0.96); }
+  100% { opacity: 1; transform: translateY(0) rotate(-3deg) scale(1); }
+}
+@keyframes seal-fade { to { opacity: 0; transform: translateY(-30px) rotate(-3deg) scale(0.9); } }
+.verdict-seal::after { content: '籤'; position: absolute;
+  top: -12px; right: -12px; background: var(--paper); color: var(--vermillion);
+  border: 1.5px solid var(--vermillion); font-size: 18px; font-weight: bold;
+  width: 30px; height: 30px; display: flex; align-items: center;
+  justify-content: center; border-radius: 4px; transform: rotate(10deg); line-height: 1; }
 
-  /* User bubbles (right, deeper) */
-  .bubble.user {
-    background: var(--ink-soft);
-    color: var(--paper);
-    border-bottom-right-radius: 4px;
-  }
+.dialogue { position: absolute; bottom: 0; left: 0; right: 0; height: 38%;
+  padding: 0 16px 16px; display: flex; flex-direction: column;
+  justify-content: flex-end; }
 
-  /* VERDICT bubble (朱砂 + seal style) */
-  .bubble.verdict {
-    background: var(--vermillion);
-    color: var(--paper);
-    font-size: 38px;
-    font-weight: 500;
-    letter-spacing: 0.15em;
-    padding: 14px 26px 14px 22px;
-    border-radius: 8px;
-    border: 1px solid var(--vermillion-d);
-    box-shadow:
-      0 2px 0 var(--vermillion-d),
-      0 0 0 3px var(--paper),
-      0 0 0 4px var(--vermillion);
-    line-height: 1;
-    align-self: flex-start;
-    transform: rotate(-1.5deg);
-    transform-origin: center;
-    margin: 4px 0;
-    position: relative;
-  }
-  .bubble.verdict::after {
-    content: '籤';
-    position: absolute;
-    top: -8px;
-    right: -8px;
-    width: 22px;
-    height: 22px;
-    background: var(--paper);
-    border: 1px solid var(--vermillion);
-    color: var(--vermillion);
-    font-size: 11px;
-    font-weight: bold;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 3px;
-    transform: rotate(8deg);
-    line-height: 1;
-  }
+.name-plate { background: var(--paper); color: var(--ink);
+  border: 1.5px solid var(--ink); padding: 6px 18px; font-size: 14px;
+  letter-spacing: 0.4em; font-weight: 500; align-self: flex-start;
+  margin-left: 8px; margin-bottom: -1.5px; position: relative; z-index: 2;
+  box-shadow: 2px 2px 0 rgba(0,0,0,0.25); }
+.name-plate.user { align-self: flex-end; margin-left: 0; margin-right: 8px;
+  background: var(--ink-soft); color: var(--paper); border-color: var(--paper); }
 
-  /* Typing indicator */
-  .typing {
-    display: flex;
-    gap: 4px;
-    padding: 13px 16px;
-    background: var(--paper-warm);
-    border-radius: 16px;
-    border-bottom-left-radius: 4px;
-    border: 1px solid var(--paper-deep);
-    align-self: flex-start;
-  }
-  .typing span {
-    width: 6px;
-    height: 6px;
-    background: var(--mist);
-    border-radius: 50%;
-    animation: typing-bounce 1.2s infinite;
-  }
-  .typing span:nth-child(2) { animation-delay: 0.15s; }
-  .typing span:nth-child(3) { animation-delay: 0.3s; }
+.dialogue-frame { background: var(--paper); color: var(--ink);
+  border: 1.5px solid var(--ink); padding: 18px 22px; min-height: 130px;
+  position: relative;
+  box-shadow: 3px 3px 0 rgba(0,0,0,0.35),
+    inset 0 0 0 3px var(--paper), inset 0 0 0 4px rgba(26,22,18,0.15); }
+.dialogue-frame::before { content: ''; position: absolute;
+  top: 5px; left: 5px; right: 5px; bottom: 5px;
+  border: 0.5px solid rgba(26,22,18,0.25); pointer-events: none; }
 
-  @keyframes typing-bounce {
-    0%, 60%, 100% { transform: translateY(0); opacity: 0.4; }
-    30%           { transform: translateY(-4px); opacity: 1; }
-  }
+.dialogue-text { font-size: 17px; line-height: 1.9; letter-spacing: 0.06em;
+  color: var(--ink); min-height: 60px; display: block; white-space: pre-wrap; }
 
-  /* ============================================
-     Input bar
-     ============================================ */
-  .input-bar {
-    flex-shrink: 0;
-    padding: 12px 16px calc(12px + env(safe-area-inset-bottom));
-    border-top: 1px solid var(--paper-deep);
-    background: var(--paper);
-    display: flex;
-    gap: 8px;
-    align-items: center;
-  }
-  .input {
-    flex: 1;
-    background: var(--paper-warm);
-    border: 1px solid var(--paper-deep);
-    border-radius: 22px;
-    padding: 10px 16px;
-    font-family: var(--serif);
-    font-size: 16px;
-    color: var(--ink);
-    outline: none;
-    transition: border-color 200ms;
-  }
-  .input:focus { border-color: var(--ink); }
-  .input::placeholder { color: var(--mist-light); }
+.continue-arrow { position: absolute; bottom: 12px; right: 18px;
+  color: var(--ink); font-size: 14px; opacity: 0;
+  animation: arrow-blink 1s ease-in-out infinite; }
+.continue-arrow.show { opacity: 1; }
+@keyframes arrow-blink {
+  0%, 100% { transform: translateY(0); opacity: 0.4; }
+  50% { transform: translateY(2px); opacity: 1; }
+}
 
-  .send-btn {
-    flex-shrink: 0;
-    background: var(--ink);
-    color: var(--paper);
-    border: none;
-    border-radius: 22px;
-    padding: 10px 18px;
-    font-family: var(--serif);
-    font-size: 14px;
-    letter-spacing: 0.2em;
-    cursor: pointer;
-    transition: opacity 200ms;
-  }
-  .send-btn:disabled { opacity: 0.35; cursor: not-allowed; }
-  .send-btn:hover:not(:disabled) { opacity: 0.85; }
+.tap-hint { position: absolute; bottom: -22px; right: 20px; font-size: 10px;
+  letter-spacing: 0.35em; color: rgba(232,201,122,0.55); opacity: 0;
+  transition: opacity 400ms; }
+.tap-hint.show { opacity: 1; }
+
+.input-frame { display: none; background: var(--paper); color: var(--ink);
+  border: 1.5px solid var(--ink); padding: 14px; min-height: 130px;
+  flex-direction: column; gap: 10px;
+  box-shadow: 3px 3px 0 rgba(0,0,0,0.35); position: relative; }
+.input-frame.show { display: flex; }
+.input-frame::before { content: ''; position: absolute;
+  top: 5px; left: 5px; right: 5px; bottom: 5px;
+  border: 0.5px solid rgba(26,22,18,0.25); pointer-events: none; }
+.input-row { display: flex; gap: 10px; align-items: center; }
+.input-prefix { font-size: 17px; color: var(--mist);
+  letter-spacing: 0.15em; flex-shrink: 0; }
+.input-box { flex: 1; background: transparent; border: none; outline: none;
+  font-family: var(--serif); font-size: 17px; color: var(--ink);
+  padding: 6px 4px; line-height: 1.7; }
+.input-box::placeholder { color: var(--mist-light); }
+.send-btn { background: var(--ink); color: var(--paper); border: none;
+  padding: 8px 18px; font-family: var(--serif); font-size: 14px;
+  letter-spacing: 0.25em; cursor: pointer; align-self: flex-end;
+  box-shadow: 2px 2px 0 rgba(0,0,0,0.3); }
+.send-btn:disabled { opacity: 0.3; cursor: not-allowed; box-shadow: none; }
+.send-btn:active { transform: translate(2px, 2px); box-shadow: none; }
+
+.act5-actions { display: flex; gap: 12px; justify-content: center; margin-top: 16px;
+  opacity: 0; transition: opacity 600ms; }
+.act5-actions.show { opacity: 1; }
+.act5-btn { background: transparent; border: 1px solid var(--paper);
+  color: var(--paper); padding: 10px 22px; font-family: var(--serif);
+  font-size: 13px; letter-spacing: 0.35em; cursor: pointer;
+  transition: all 200ms; }
+.act5-btn:hover { background: var(--paper); color: var(--ink); }
+.act5-btn.primary { background: var(--paper); color: var(--ink); }
+.act5-btn.primary:hover { background: var(--paper-warm); }
 </style>
 </head>
 <body>
-
-<div class="app">
-
-  <!-- Header -->
-  <header class="chat-header">
+<div class="game">
+  <div class="scene">
+    <div class="moon"></div>
     <div class="brand">天 意</div>
-    <div class="character">
-      <!-- 小乌龟 avatar (small, front-facing, cute) -->
-      <svg class="avatar" viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg">
-        <!-- Shell -->
-        <ellipse cx="40" cy="52" rx="26" ry="20" fill="#9C7E50" stroke="#1A1612" stroke-width="2"/>
-        <!-- Hex pattern hint -->
-        <g stroke="#1A1612" stroke-width="0.8" fill="none" opacity="0.35">
-          <path d="M 30 42 L 38 40 L 46 40 L 50 46 L 46 52 L 38 52 L 32 48 Z"/>
-          <path d="M 22 54 L 30 52 L 32 58 L 28 62 L 22 60 Z"/>
-          <path d="M 50 52 L 56 54 L 56 60 L 52 62 L 48 58 Z"/>
+    <div class="activity" id="activity">此刻在 抄 经</div>
+    <div class="particles" id="particles"></div>
+    <div class="character-stage">
+      <svg class="character-art" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+        <line x1="20" y1="185" x2="180" y2="185" stroke="#C9B89B" stroke-width="0.8" opacity="0.25"/>
+        <ellipse cx="100" cy="135" rx="60" ry="45" fill="#9C7E50" stroke="#1A1612" stroke-width="2.5"/>
+        <g stroke="#1A1612" stroke-width="1" fill="none" opacity="0.5" stroke-linejoin="round">
+          <path d="M 75 110 L 95 105 L 115 110 L 120 130 L 110 145 L 90 145 L 80 130 Z"/>
+          <path d="M 55 130 L 70 130 L 75 145 L 65 158 L 50 155 L 45 142 Z"/>
+          <path d="M 125 130 L 140 132 L 150 145 L 145 158 L 130 158 L 122 145 Z"/>
+          <path d="M 85 155 L 110 155 L 118 170 L 105 178 L 88 178 L 80 168 Z"/>
         </g>
-        <!-- Body / underbelly -->
-        <ellipse cx="40" cy="68" rx="14" ry="3" fill="#E8DCC5" stroke="#1A1612" stroke-width="1.2"/>
-        <!-- Head -->
-        <ellipse cx="40" cy="26" rx="14" ry="13" fill="#7C8B65" stroke="#1A1612" stroke-width="2"/>
-        <!-- Eyes (two, big & curious — apprentice feel) -->
-        <ellipse cx="35" cy="26" rx="2.4" ry="3" fill="#F5EFE0" stroke="#1A1612" stroke-width="0.6"/>
-        <ellipse cx="45" cy="26" rx="2.4" ry="3" fill="#F5EFE0" stroke="#1A1612" stroke-width="0.6"/>
-        <ellipse cx="35.4" cy="26.5" rx="1.4" ry="1.9" fill="#1A1612"/>
-        <ellipse cx="45.4" cy="26.5" rx="1.4" ry="1.9" fill="#1A1612"/>
-        <circle cx="35.8" cy="25.6" r="0.5" fill="#F5EFE0"/>
-        <circle cx="45.8" cy="25.6" r="0.5" fill="#F5EFE0"/>
-        <!-- Eyebrows (slight, curious) -->
-        <path d="M 32 21 Q 35 19 38 21" stroke="#1A1612" stroke-width="1" fill="none" stroke-linecap="round"/>
-        <path d="M 42 21 Q 45 19 48 21" stroke="#1A1612" stroke-width="1" fill="none" stroke-linecap="round"/>
-        <!-- Smile (small, gentle) -->
-        <path d="M 36 33 Q 40 35 44 33" stroke="#1A1612" stroke-width="1.2" fill="none" stroke-linecap="round"/>
+        <path d="M 50 165 Q 100 175 150 165" stroke="#1A1612" stroke-width="1" fill="none" opacity="0.4"/>
+        <ellipse cx="55" cy="182" rx="14" ry="6" fill="#E8DCC5" stroke="#1A1612" stroke-width="1.8"/>
+        <ellipse cx="145" cy="182" rx="14" ry="6" fill="#E8DCC5" stroke="#1A1612" stroke-width="1.8"/>
+        <ellipse cx="100" cy="62" rx="30" ry="28" fill="#7C8B65" stroke="#1A1612" stroke-width="2.5"/>
+        <ellipse cx="88" cy="60" rx="5.5" ry="7" fill="#F5EFE0" stroke="#1A1612" stroke-width="1.2"/>
+        <ellipse cx="112" cy="60" rx="5.5" ry="7" fill="#F5EFE0" stroke="#1A1612" stroke-width="1.2"/>
+        <ellipse cx="89" cy="61" rx="3" ry="4.5" fill="#1A1612"/>
+        <ellipse cx="113" cy="61" rx="3" ry="4.5" fill="#1A1612"/>
+        <circle cx="90" cy="59" r="1.1" fill="#FAF5E8"/>
+        <circle cx="114" cy="59" r="1.1" fill="#FAF5E8"/>
+        <path d="M 80 48 Q 88 44 96 48" stroke="#1A1612" stroke-width="1.6" fill="none" stroke-linecap="round"/>
+        <path d="M 104 48 Q 112 44 120 48" stroke="#1A1612" stroke-width="1.6" fill="none" stroke-linecap="round"/>
+        <circle cx="96" cy="74" r="0.9" fill="#1A1612" opacity="0.7"/>
+        <circle cx="104" cy="74" r="0.9" fill="#1A1612" opacity="0.7"/>
+        <path d="M 92 82 Q 100 86 108 82" stroke="#1A1612" stroke-width="1.6" fill="none" stroke-linecap="round"/>
       </svg>
-
-      <div class="character-info">
-        <div class="character-name">小 乌 龟</div>
-        <div class="character-status" id="status">此刻在 抄 经</div>
-      </div>
     </div>
-  </header>
-
-  <!-- Chat messages -->
-  <main class="chat-messages" id="chat"></main>
-
-  <!-- Input bar -->
-  <footer class="input-bar">
-    <input class="input" id="input" type="text" placeholder="心里那件事…" maxlength="40" autocomplete="off">
-    <button class="send-btn" id="send" disabled>发 送</button>
-  </footer>
-
+    <div class="verdict-stage" id="verdictStage"><div class="verdict-seal" id="verdictSeal">是</div></div>
+  </div>
+  <div class="dialogue">
+    <div class="name-plate" id="namePlate">小 乌 龟</div>
+    <div class="dialogue-frame" id="dialogueFrame">
+      <span class="dialogue-text" id="dialogueText"></span>
+      <span class="continue-arrow" id="continueArrow">▼</span>
+    </div>
+    <div class="input-frame" id="inputFrame">
+      <div class="input-row">
+        <span class="input-prefix">「</span>
+        <input class="input-box" id="input" type="text" placeholder="心里那件事…" maxlength="60" autocomplete="off">
+        <span class="input-prefix">」</span>
+      </div>
+      <button class="send-btn" id="sendBtn" disabled>说 完 了</button>
+    </div>
+    <div class="act5-actions" id="act5Actions">
+      <button class="act5-btn primary" id="askAgainBtn">再 问 一 卦</button>
+      <button class="act5-btn" id="farewellBtn">辞 别</button>
+    </div>
+    <div class="tap-hint" id="tapHint">轻 触 继 续</div>
+  </div>
 </div>
 
 <script>
-  // ============================================
-  // 小乌龟人设 + 时辰活动
-  // ============================================
-  // 老龟出门去了,小乌龟代师听卦。
-  // 语气比老龟更轻、更松,偶尔反问,偶尔撒娇式回应。
-  // 但 verdict 还是要给——这是产品的「断言」属性。
-
-  const ACTIVITY = (() => {
-    const h = new Date().getHours();
-    if (h >= 23 || h < 5) return '在 师 傅 旁 边 打 盹';
-    if (h < 7)            return '在 院 子 里 扫 落 叶';
-    if (h < 11)           return '在 烹 一 壶 茶';
-    if (h < 13)           return '在 翻 一 卷 书';
-    if (h < 17)           return '此刻在 抄 经';
-    if (h < 19)           return '在 看 湖 边 的 鱼';
-    if (h < 21)           return '在 听 雨';
-    return '在 落 笔 写 字';
-  })();
-
-  // 初始招呼(根据时辰微调)
-  const GREETING = (() => {
-    const h = new Date().getHours();
-    if (h >= 23 || h < 5)
-      return '夜深了。师傅睡了,我替你听——心里那件事,说罢。';
-    if (h < 7)
-      return '孩子,你来啦。师傅在练功,我先听着。';
-    if (h < 11)
-      return '茶刚好。坐这儿说——心里那件事。';
-    if (h < 17)
-      return '师傅刚出门去了,我替他听。心里那件事,跟我说。';
-    if (h < 21)
-      return '湖上风好。坐——心里那件事,慢慢说。';
-    return '夜深了。心里那件事再压一晚不舒服?说罢。';
-  })();
-
-  // verdict + laogui mock 数据(生产换为 /api/divine)
-  const ANSWERS = [
-    { verdict: '是', laogui: '这事可以做,但前两个月会累。撑过去就顺了。' },
-    { verdict: '是', laogui: '出手吧。再拖,你心里那口气会越憋越紧。' },
-    { verdict: '是', laogui: '去做吧——这事你已经想了三个月。' },
-    { verdict: '是', laogui: '你心里早就有答案,问我不过是要个允许。' },
-    { verdict: '否', laogui: '你不是讨厌这件事,是讨厌这阵子的自己。' },
-    { verdict: '否', laogui: '别去——做了你会后悔三天。' },
-    { verdict: '否', laogui: '这个台子不适合你,体面下来比硬撑好。' },
-    { verdict: '否', laogui: '别答应,你只是不好意思拒绝。' },
-    { verdict: '缓', laogui: '再陪自己一阵——这事还没到出手的时候。' },
-    { verdict: '缓', laogui: '今天先睡一觉。明天再问我一次。' },
-    { verdict: '缓', laogui: '过两周再看。你这阵子眼神不对。' },
-    { verdict: '缓', laogui: '停一下——你这阵子做太多决定了。' },
-  ];
-
-  // 追问的小乌龟回复池(没有 verdict,只是聊)
-  const FOLLOWUP_REPLIES = [
-    '嗯。',
-    '这话告诉我多一点。',
-    '你心里其实有答案,只是怕承担,是不是?',
-    '再等等——这事不必这周就定。',
-    '把它写下来,明天再读一次。',
-    '你说这话的时候,自己什么感觉?',
-    '师傅说过:急的事都不重要,重要的事都不急。',
-    '去喝口水,回来再说。',
-    '不必告诉我所有的,讲你最想讲的那一面。',
-    '好。这事我替你记着了。',
-    '别一个人扛着——找个能聊的人说一次。',
-    '换一个角度问自己:如果是我,我会怎么劝我?',
-  ];
-
-  // ============================================
-  // State + DOM
-  // ============================================
-  const $chat   = document.getElementById('chat');
-  const $input  = document.getElementById('input');
-  const $send   = document.getElementById('send');
-  const $status = document.getElementById('status');
-
-  $status.textContent = ACTIVITY;
-
-  let hasAskedFirst = false;   // 第一个问题给 verdict,后续给 followup
-
-  // ============================================
-  // 渲染函数
-  // ============================================
-  function addBubble({ side, text, verdict }) {
-    const row = document.createElement('div');
-    row.className = 'msg-row ' + side;
-
-    // turtle 才有头像
-    if (side === 'turtle') {
-      const av = document.createElement('div');
-      av.className = 'msg-avatar';
-      av.innerHTML = `
-        <svg viewBox="0 0 80 80" width="32" height="32">
-          <ellipse cx="40" cy="52" rx="26" ry="20" fill="#9C7E50" stroke="#1A1612" stroke-width="2"/>
-          <ellipse cx="40" cy="26" rx="14" ry="13" fill="#7C8B65" stroke="#1A1612" stroke-width="2"/>
-          <ellipse cx="35" cy="26" rx="2" ry="2.6" fill="#1A1612"/>
-          <ellipse cx="45" cy="26" rx="2" ry="2.6" fill="#1A1612"/>
-          <path d="M 36 33 Q 40 35 44 33" stroke="#1A1612" stroke-width="1.2" fill="none" stroke-linecap="round"/>
-        </svg>`;
-      row.appendChild(av);
-    }
-
-    const bubble = document.createElement('div');
-    bubble.className = 'bubble ' + (verdict ? 'verdict' : side);
-    bubble.textContent = text;
-    row.appendChild(bubble);
-
-    $chat.appendChild(row);
-    $chat.scrollTop = $chat.scrollHeight;
-    return bubble;
-  }
-
-  function addTyping() {
-    const row = document.createElement('div');
-    row.className = 'msg-row turtle';
-    row.id = 'typing-row';
-    row.innerHTML = `
-      <div class="msg-avatar">
-        <svg viewBox="0 0 80 80" width="32" height="32">
-          <ellipse cx="40" cy="52" rx="26" ry="20" fill="#9C7E50" stroke="#1A1612" stroke-width="2"/>
-          <ellipse cx="40" cy="26" rx="14" ry="13" fill="#7C8B65" stroke="#1A1612" stroke-width="2"/>
-          <ellipse cx="35" cy="26" rx="2" ry="2.6" fill="#1A1612"/>
-          <ellipse cx="45" cy="26" rx="2" ry="2.6" fill="#1A1612"/>
-        </svg>
-      </div>
-      <div class="typing"><span></span><span></span><span></span></div>`;
-    $chat.appendChild(row);
-    $chat.scrollTop = $chat.scrollHeight;
-  }
-  function removeTyping() {
-    const t = document.getElementById('typing-row');
-    if (t) t.remove();
-  }
-
-  // ============================================
-  // 流程
-  // ============================================
-  function initGreeting() {
-    setTimeout(() => addBubble({ side: 'turtle', text: GREETING }), 400);
-  }
-
-  function userSend() {
-    const q = $input.value.trim();
-    if (!q) return;
-    $input.value = '';
-    $send.disabled = true;
-
-    addBubble({ side: 'user', text: q });
-
-    // 小乌龟"思考"延迟
-    const thinkMs = 700 + Math.random() * 800;
-    setTimeout(() => {
-      addTyping();
-      setTimeout(() => {
-        removeTyping();
-        respond(q);
-      }, thinkMs);
-    }, 300);
-  }
-
-  function respond(question) {
-    if (!hasAskedFirst) {
-      // 第一个问题:给 verdict + laogui
-      const ans = ANSWERS[Math.floor(Math.random() * ANSWERS.length)];
-      addBubble({ side: 'turtle', text: ans.verdict, verdict: true });
-      setTimeout(() => {
-        addBubble({ side: 'turtle', text: ans.laogui });
-      }, 700);
-      hasAskedFirst = true;
-    } else {
-      // 后续追问:从 followup 池随机
-      const reply = FOLLOWUP_REPLIES[Math.floor(Math.random() * FOLLOWUP_REPLIES.length)];
-      addBubble({ side: 'turtle', text: reply });
-    }
-  }
-
-  // ============================================
-  // Events
-  // ============================================
-  $input.addEventListener('input', () => {
-    $send.disabled = $input.value.trim().length === 0;
-  });
-  $input.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter' && !$send.disabled) userSend();
-  });
-  $send.addEventListener('click', userSend);
-
-  initGreeting();
+const DIALOGUE = {"_meta":{"version":"0.1","purpose":"小乌龟五幕剧的全套对话池,配套 dialogue-methodology-v0.1.md","character":"算卦店主理人 小乌龟。不端架子,见过事,会反问、自嘲、等你说完。","forbidden":"不允许:师傅/家师/贫道/在下/您/卦象/五行/八字/天命/冥冥/卦/爻","schema":{"act1_greetings_by_hour":"按时辰分的开场白(8 个区间,每段 2-3 句候选)","act2_moves":"收纳问题的 5 大动作池","act3_pre_verdict_lines":"起卦前的过场话","act3_verdict_to_laogui":"verdict 与 laogui 配对池(每 verdict 8-12 条)","act4_moves":"陪行阶段的 6 大动作池","act5_closings":"收尾告别话","triggers":"状态机各种关键词触发集合"},"total_lines":138,"review_status":"v0.1 由产品起草。上线前需 1-2 轮文案打磨 + 跟 v3.1 黑名单跑一遍。"},"act1_greetings_by_hour":{"5-7":["孩子,你来啦。坐这儿,慢慢说。","天还没亮透。来——心里那件事压一夜了吧?","起得这么早,事不轻。来,说罢。"],"7-11":["茶刚好。心里那件事,跟我说。","孩子,你来啦。坐——一壶茶的工夫够说一件事。","来。你这阵子眼神不对——什么事?"],"11-13":["日头正好。来,坐。","中午到的人都饿——是先吃饭还是先说事?","孩子,正好。说罢。"],"13-17":["来啦。这阵子的事,挑一件压心里的说。","下午这一段最适合想事。坐——慢慢讲。","嗯。你这一脸跟前几日不一样。"],"17-19":["夕阳还在。坐这儿,把今天那一件说一说。","湖上风好。坐,慢慢讲。","天快黑了,事不能再压一晚。来。"],"19-21":["夜里来的人都有事。说罢。","灯亮着——你坐,我听。","孩子,你来啦。这一晚我空着,陪你想。"],"21-23":["夜深了。还压着没说?","这个点来,我猜你也睡不着。坐。","嗯。说吧——白天没人听的话,这一刻我听。"],"23-5":["这个点来的人,事不小。坐。","这么晚——心里那件事再压一晚不舒服?","夜深了。说一句也好,憋着伤身。"]},"act2_moves":{"PROBE_OPENING":["再说说——是什么让你这一刻问这事?","这事让你犹豫多久了?","不做的话,你最怕什么?","做了的话,你期待什么?","之前你怎么想的?","这事昨晚睡前想了吗?"],"PROBE_OTHER":["他是怎么个不靠谱?","你是问他,还是问你自己?","这事里,你最在意他什么?","他要是知道你这一刻在问我,会说什么?","你想要的是他变,还是你不变?"],"CHALLENGE_FRAME":["你是问该不该,还是问敢不敢?","换个问法——如果不是你,你会怎么劝那个人?","这个『要不要』,是你真不知道,还是不愿承认?","这事如果只能选『现在做』或『永远不做』,你选哪个?","你想要个答案,还是想要个允许?"],"REFLECT_INNER_KNOW":["听上去你心里有数了。","这事在你心里压了不止三天吧。","你想问的不是这一句,是更下面那一层。","你说『但是』的时候,自己听到了吗?","嗯。你这一句话里有两个答案——你听到了哪一个?"],"ACK_AND_PIVOT":["嗯,我听明白了。让我看一卦。","这事说够了。坐住,我看一下。","好。容我看一卦。","知道了。给我一拍。"]},"act3_pre_verdict_lines":["容我看一卦。","坐住——我看一下。","让这阵安静一会儿。","等一拍。","好。看一看。"],"act3_verdict_to_laogui":{"是":[{"laogui":"这事可以做。但前两个月会累,撑过去就顺了。"},{"laogui":"出手吧。再拖,你心里那口气会越憋越紧。"},{"laogui":"去做吧——这事你已经想了三个月。"},{"laogui":"你心里早就有答案,问我不过是要个允许。"},{"laogui":"可以做。但别一个人扛,找人陪着。"},{"laogui":"去——这事你不试,十年后还会想起。"},{"laogui":"做。但别求快,前一步走稳了再走第二步。"},{"laogui":"答应吧。这事拒了之后你后悔,比做了后悔更重。"},{"laogui":"可以做。最坏的结果你能扛——我看得出来。"},{"laogui":"做就做了。不必告诉所有人,告诉一个就够。"}],"否":[{"laogui":"你不是讨厌这件事,是讨厌这阵子的自己。"},{"laogui":"别去——做了你会后悔三天。"},{"laogui":"这个台子不适合你,体面下来比硬撑好。"},{"laogui":"别答应,你只是不好意思拒绝。"},{"laogui":"不要去。这事的脏不在你能力,在它本身。"},{"laogui":"别再撑了。撑住了也不是你想要的样子。"},{"laogui":"这事别接。接了你会忘记今晚的不安——那才是危险。"},{"laogui":"停。你不是怕做不到,你是怕做到了发现不是想要的。"},{"laogui":"不行。你心里那口气不愿意,就别勉强自己点头。"},{"laogui":"拒了吧。难一时,但省三年。"}],"缓":[{"laogui":"再陪自己一阵——这事还没到出手的时候。"},{"laogui":"今天先睡一觉。明天再问我一次。"},{"laogui":"过两周再看。你这阵子眼神不对。"},{"laogui":"停一下——你这阵子做太多决定了。"},{"laogui":"再等。等你不那么想这事的那一天,再决定。"},{"laogui":"缓一缓。这事差的不是答案,是火候。"},{"laogui":"再问一次,但不是问我——问明天早上醒来的你。"},{"laogui":"压一晚。压不下去,再来问。"},{"laogui":"现在做,会做坏。再等三日。"},{"laogui":"别急。这事让它自己长一会儿。"}]},"act4_moves":{"PRACTICAL_STEP":["今天先记下来。明天早上再读一遍。","这一周内找个安静的地方,把这事写一页纸。","先告诉一个你信得过的人。","不用立刻做。但今天就开始准备。","把第一步拆到不能再小——今晚就能做完那一步。"],"PRACTICAL_SCRIPT":["就说『我想跟你说一件事,我想了一阵了——』就够。","先问对方一句『现在方便聊几分钟吗』,给他准备。","不必长。一句话,把结果说在前面。","别铺垫。开门见山,他比你想得能接住。"],"REFRAME_FAILURE":["不行也是一种结果,不是失败。","失败是连试都没试。这事你已经在做了。","就当付学费。学费交完,事就清楚了。","最坏的结果是什么?——你能不能扛?","怕失败这件事,本身已经是答案。"],"PIVOT_NEW":["问吧。但同一件事,这一卦已经说完了。","换一件事问。这事再问,我也是这一卦。","先做着这一件,有结果了再来。","你心里其实还有一件压着的——说那件。"],"REFLECT_WHY":["你心里其实知道为什么。再说一遍,自己听。","这事问『为什么』之前,先问『是什么』。","为什么不重要。重要的是接下来。","你问『为什么』的时候,是不是在找一个不去做的理由?"],"GENTLE_REDIRECT":["这一卦先在这。回头你想问别的,再来。","我听见你了。但这一刻,先把这一卦的事压一压。","嗯。这话我记下了。但今天先把今天的事说完。"]},"act5_closings":["卦罢。事在人为。","记着。早晨醒来再想一次。","去做你那件事吧。","我在这。下次再来。","好。这事我替你记着了。","走吧。你自己心里有数了。","先这样。回头你会知道结果。","嗯。你来过,我听过,这就够。","去吧——风凉,带件外套。","心里有个声音,听它的。"],"triggers":{"_note":"状态机用这些关键词在用户消息里做 substring 匹配","SKIP_KEYWORDS":["直接说","快","别问了","给个答案","别废话","速速","立刻告诉我","不用问了"],"CLOSE_KEYWORDS":["谢谢","好的","嗯","我知道了","明白","好","好吧","晓得了","懂了","OK","ok"],"OTHER_REFERENCE":["他","她","对方","TA","他们","她们","那个人","那位","老板","上司","同事","男友","女友","老公","老婆","丈夫","妻子"],"MODAL_SELF_TALK":["应该","不应该","应不应","该不该","本来应该","理论上","按理说"],"CONJUNCTIONS":["但是","可是","不过","只是","就是","然而","却","另一方面"],"ACT4_PRACTICAL_STEP":["然后","接下来","怎么办","下一步","我该做什么"],"ACT4_PRACTICAL_SCRIPT":["怎么说","怎么开口","怎么告诉","怎么讲"],"ACT4_REFRAME_FAILURE":["万一","如果不","要是","失败","搞砸"],"ACT4_PIVOT_NEW":["再问","再看","换一个","另外一件"],"ACT4_REFLECT_WHY":["为什么","为啥","怎么会","凭什么"]},"blacklist_scope":{"_note":"blacklists.json 的扫描范围必须按字段限定,不能扫所有 dialogue","scan":["act3_verdict_to_laogui[*].laogui"],"do_not_scan":["act1_greetings_by_hour","act2_moves","act3_pre_verdict_lines","act4_moves","act5_closings"],"reason":"脚本台词是小乌龟自己的话——他开的就是算卦店,「卦」是他的本行用词,不是玄学暴露。真正的玄学暴露词(爻/五行/八字/天命/冥冥/纳甲)在所有脚本里都没出现,可放心。"},"tuning_notes":["Act 2 收纳问题的字数阈值 10 字是经验值,需要在真实用户对话上验证","Act 4 自动收尾阈值 4 轮是防『粘人』,如果用户体感太短可调到 5-6 轮","Act 5 收尾后留 90 秒空白,用户不动就自动关闭对话 → 回到 Act 1 起手状态","每个 move 池 4-6 条,上线 3 个月后看『重复脸』频率,扩到 8-10 条/池","blacklist 扫描严格按 blacklist_scope.scan 字段限定,不要全文扫"]};
 </script>
 
+<script>
+// ============================================
+// 五幕状态机 — 配合 dialogue-pool.json
+// ============================================
+const $activity = document.getElementById('activity');
+const $namePlate = document.getElementById('namePlate');
+const $dialogueFrame = document.getElementById('dialogueFrame');
+const $dialogueText = document.getElementById('dialogueText');
+const $continueArrow = document.getElementById('continueArrow');
+const $tapHint = document.getElementById('tapHint');
+const $inputFrame = document.getElementById('inputFrame');
+const $input = document.getElementById('input');
+const $sendBtn = document.getElementById('sendBtn');
+const $verdictStage = document.getElementById('verdictStage');
+const $verdictSeal = document.getElementById('verdictSeal');
+const $particles = document.getElementById('particles');
+const $act5Actions = document.getElementById('act5Actions');
+const $askAgainBtn = document.getElementById('askAgainBtn');
+const $farewellBtn = document.getElementById('farewellBtn');
+
+let state = {
+  act: 'ACT_1_GREETING',
+  turnCount: 0,
+  hasGivenVerdict: false,
+  uiState: 'typing',          // typing / waiting / input / verdict
+  currentText: '',
+  typingTimer: null,
+  history: []
+};
+
+const ACT_LIMITS = {
+  ACT_2_MAX_TURNS: 3,
+  ACT_4_MAX_TURNS: 4,
+  ACT_2_LENGTH_THRESHOLD: 30  // 用户消息字数 > 30 → 直接进 Act 3
+};
+
+const T = DIALOGUE.triggers;
+
+// ============================================
+// 时辰活动 + 招呼
+// ============================================
+function hourBand() {
+  const h = new Date().getHours();
+  if (h >= 5  && h < 7)  return '5-7';
+  if (h >= 7  && h < 11) return '7-11';
+  if (h >= 11 && h < 13) return '11-13';
+  if (h >= 13 && h < 17) return '13-17';
+  if (h >= 17 && h < 19) return '17-19';
+  if (h >= 19 && h < 21) return '19-21';
+  if (h >= 21 && h < 23) return '21-23';
+  return '23-5';
+}
+
+function activityCaption() {
+  const map = {
+    '5-7': '在 院 子 里 扫 落 叶', '7-11': '在 烹 一 壶 茶',
+    '11-13': '在 翻 一 卷 书',   '13-17': '此刻在 抄 经',
+    '17-19': '在 看 湖 边 的 鱼','19-21': '在 听 雨',
+    '21-23': '在 落 笔 写 字',   '23-5': '在 灯 下 打 盹'
+  };
+  return map[hourBand()];
+}
+
+$activity.textContent = activityCaption();
+
+// 飘尘
+for (let i = 0; i < 8; i++) {
+  const p = document.createElement('div');
+  p.className = 'particle';
+  p.style.left = Math.random() * 100 + '%';
+  p.style.animationDelay = (Math.random() * -14) + 's';
+  p.style.animationDuration = (10 + Math.random() * 8) + 's';
+  $particles.appendChild(p);
+}
+
+// ============================================
+// 工具
+// ============================================
+function pickFrom(arr) {
+  return arr[Math.floor(Math.random() * arr.length)];
+}
+function wait(ms) {
+  return new Promise(function(r) { setTimeout(r, ms); });
+}
+function matchesAny(msg, keywords) {
+  return keywords.some(function(k) { return msg.indexOf(k) >= 0; });
+}
+
+// ============================================
+// 打字机
+// ============================================
+function typewriter(text, speed) {
+  speed = speed || 55;
+  return new Promise(function(resolve) {
+    $dialogueText.textContent = '';
+    $continueArrow.classList.remove('show');
+    let i = 0;
+    state.uiState = 'typing';
+    state.currentText = text;
+    state.typingTimer = setInterval(function() {
+      if (i >= text.length) {
+        clearInterval(state.typingTimer);
+        state.uiState = 'waiting';
+        $continueArrow.classList.add('show');
+        $tapHint.classList.add('show');
+        resolve();
+        return;
+      }
+      $dialogueText.textContent += text[i++];
+    }, speed);
+  });
+}
+
+function skipTypewriter() {
+  if (state.typingTimer) clearInterval(state.typingTimer);
+  $dialogueText.textContent = state.currentText;
+  state.uiState = 'waiting';
+  $continueArrow.classList.add('show');
+  $tapHint.classList.add('show');
+}
+
+// ============================================
+// 模式切换
+// ============================================
+function enterInputMode() {
+  $namePlate.textContent = '你';
+  $namePlate.classList.add('user');
+  $dialogueFrame.style.display = 'none';
+  $inputFrame.classList.add('show');
+  $continueArrow.classList.remove('show');
+  $tapHint.classList.remove('show');
+  state.uiState = 'input';
+  setTimeout(function() { $input.focus(); }, 100);
+}
+
+function exitInputMode() {
+  $namePlate.textContent = '小 乌 龟';
+  $namePlate.classList.remove('user');
+  $dialogueFrame.style.display = '';
+  $inputFrame.classList.remove('show');
+}
+
+async function turtleSay(text) {
+  exitInputMode();
+  state.history.push({ role: 'turtle', text: text });
+  await typewriter(text);
+}
+
+// ============================================
+// Verdict 印章
+// ============================================
+async function playVerdictSeal(verdict) {
+  state.uiState = 'verdict';
+  $tapHint.classList.remove('show');
+  $verdictSeal.textContent = verdict;
+  $verdictStage.classList.add('show');
+  $verdictSeal.classList.remove('fade-out');
+  void $verdictSeal.offsetWidth;
+  $verdictSeal.classList.add('drop');
+  await wait(1300);
+  await wait(900);
+  $verdictSeal.classList.add('fade-out');
+  await wait(500);
+  $verdictStage.classList.remove('show');
+  $verdictSeal.classList.remove('drop', 'fade-out');
+}
+
+// ============================================
+// Act 2 收纳 → 选 move
+// ============================================
+function selectAct2Move(msg) {
+  if (msg.length < 10)                          return DIALOGUE.act2_moves.PROBE_OPENING;
+  if (matchesAny(msg, T.OTHER_REFERENCE))       return DIALOGUE.act2_moves.PROBE_OTHER;
+  if (matchesAny(msg, T.MODAL_SELF_TALK))       return DIALOGUE.act2_moves.CHALLENGE_FRAME;
+  if (matchesAny(msg, T.CONJUNCTIONS))          return DIALOGUE.act2_moves.REFLECT_INNER_KNOW;
+  return DIALOGUE.act2_moves.PROBE_OPENING;
+}
+
+// ============================================
+// Act 4 陪行 → 选 move
+// ============================================
+function selectAct4Move(msg) {
+  if (matchesAny(msg, T.ACT4_PRACTICAL_STEP))   return DIALOGUE.act4_moves.PRACTICAL_STEP;
+  if (matchesAny(msg, T.ACT4_PRACTICAL_SCRIPT)) return DIALOGUE.act4_moves.PRACTICAL_SCRIPT;
+  if (matchesAny(msg, T.ACT4_REFRAME_FAILURE))  return DIALOGUE.act4_moves.REFRAME_FAILURE;
+  if (matchesAny(msg, T.ACT4_PIVOT_NEW))        return DIALOGUE.act4_moves.PIVOT_NEW;
+  if (matchesAny(msg, T.ACT4_REFLECT_WHY))      return DIALOGUE.act4_moves.REFLECT_WHY;
+  return DIALOGUE.act4_moves.GENTLE_REDIRECT;
+}
+
+// ============================================
+// 各幕处理
+// ============================================
+async function enterAct1() {
+  state.act = 'ACT_1_GREETING';
+  state.turnCount = 0;
+  state.hasGivenVerdict = false;
+  state.history = [];
+  $act5Actions.classList.remove('show');
+  await wait(600);
+  const greeting = pickFrom(DIALOGUE.act1_greetings_by_hour[hourBand()]);
+  await turtleSay(greeting);
+  state.act = 'ACT_2_GATHERING';
+}
+
+async function handleAct2(msg) {
+  state.turnCount++;
+  // 触发 → Act 3
+  if (matchesAny(msg, T.SKIP_KEYWORDS) ||
+      msg.length > ACT_LIMITS.ACT_2_LENGTH_THRESHOLD ||
+      state.turnCount >= ACT_LIMITS.ACT_2_MAX_TURNS) {
+    await enterAct3();
+    return;
+  }
+  const movePool = selectAct2Move(msg);
+  await turtleSay(pickFrom(movePool));
+}
+
+async function enterAct3() {
+  state.act = 'ACT_3_VERDICT';
+  await turtleSay(pickFrom(DIALOGUE.act3_pre_verdict_lines));
+  // 用户看完过场,等 2 秒再砸印章
+  await wait(2200);
+  // 选 verdict + laogui(mock,生产替换为 /api/divine)
+  const verdicts = ['是', '否', '缓'];
+  const v = verdicts[Math.floor(Math.random() * verdicts.length)];
+  const laoguiObj = pickFrom(DIALOGUE.act3_verdict_to_laogui[v]);
+  // 印章砸下
+  await playVerdictSeal(v);
+  // laogui
+  await turtleSay(laoguiObj.laogui);
+  state.hasGivenVerdict = true;
+  state.act = 'ACT_4_FOLLOWUP';
+  state.turnCount = 0;
+}
+
+async function handleAct4(msg) {
+  state.turnCount++;
+  // 收尾触发
+  if (matchesAny(msg, T.CLOSE_KEYWORDS) ||
+      state.turnCount >= ACT_LIMITS.ACT_4_MAX_TURNS) {
+    await enterAct5();
+    return;
+  }
+  const movePool = selectAct4Move(msg);
+  await turtleSay(pickFrom(movePool));
+}
+
+async function enterAct5() {
+  state.act = 'ACT_5_CLOSING';
+  await turtleSay(pickFrom(DIALOGUE.act5_closings));
+  $tapHint.classList.remove('show');
+  $continueArrow.classList.remove('show');
+  $act5Actions.classList.add('show');
+}
+
+// ============================================
+// 用户输入处理
+// ============================================
+async function handleUserSubmit() {
+  const q = $input.value.trim();
+  if (!q) return;
+  $input.value = '';
+  $sendBtn.disabled = true;
+  state.history.push({ role: 'user', text: q });
+
+  // 显示用户消息(2 秒后小乌龟接话)
+  $namePlate.textContent = '你';
+  $namePlate.classList.add('user');
+  $dialogueFrame.style.display = '';
+  $inputFrame.classList.remove('show');
+  $dialogueText.textContent = q;
+  $continueArrow.classList.add('show');
+  state.uiState = 'waiting-user-done';
+  await wait(1400);
+
+  // 小乌龟思考
+  $namePlate.textContent = '小 乌 龟';
+  $namePlate.classList.remove('user');
+  $dialogueText.textContent = '…';
+  $continueArrow.classList.remove('show');
+  await wait(700 + Math.random() * 600);
+
+  // 路由到当前 act 的 handler
+  if (state.act === 'ACT_2_GATHERING') {
+    await handleAct2(q);
+  } else if (state.act === 'ACT_4_FOLLOWUP') {
+    await handleAct4(q);
+  }
+}
+
+// ============================================
+// 事件
+// ============================================
+document.addEventListener('click', function(e) {
+  if (e.target.closest('.input-frame, .send-btn, .input-box, .act5-actions, .act5-btn')) return;
+  if (state.uiState === 'typing') {
+    skipTypewriter();
+  } else if (state.uiState === 'waiting') {
+    // 小乌龟说完了 → 切到用户输入态(仅 Act 2/4 才允许输入)
+    if (state.act === 'ACT_2_GATHERING' || state.act === 'ACT_4_FOLLOWUP') {
+      enterInputMode();
+    }
+  }
+});
+
+$input.addEventListener('input', function() {
+  $sendBtn.disabled = $input.value.trim().length === 0;
+});
+$input.addEventListener('keydown', function(e) {
+  if (e.key === 'Enter' && !$sendBtn.disabled) handleUserSubmit();
+});
+$sendBtn.addEventListener('click', handleUserSubmit);
+
+$askAgainBtn.addEventListener('click', function() {
+  $act5Actions.classList.remove('show');
+  // 刷新时辰活动
+  $activity.textContent = activityCaption();
+  enterAct1();
+});
+
+$farewellBtn.addEventListener('click', function() {
+  $act5Actions.classList.remove('show');
+  turtleSay('好。走吧。');
+});
+
+// 启动
+enterAct1();
+</script>
 </body>
 </html>
