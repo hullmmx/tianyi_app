@@ -404,16 +404,37 @@ function selectAct4Move(msg) {
 // ============================================
 // 各幕处理
 // ============================================
+// 极简招呼池 — 保留「进店见师傅」的仪式感,但 1.5 秒内完成
+const SHORT_GREETINGS = [
+  '孩子,坐。',
+  '来。',
+  '孩子,你来了。',
+  '嗯。坐这儿。',
+  '孩子,说罢。',
+  '坐。',
+  '来啦。'
+];
+
 async function enterAct1() {
-  state.act = 'ACT_1_GREETING';
+  // Act 1 极简版:一句话 + 自动开输入框(不需要用户点)。
+  // 保留仪式感的「他在那」,但不耽误用户提问。
+  state.act = 'AWAITING_FIRST_INPUT';
   state.turnCount = 0;
   state.hasGivenVerdict = false;
   state.history = [];
   $act5Actions.classList.remove('show');
-  await wait(600);
-  const greeting = pickFrom(DIALOGUE.act1_greetings_by_hour[hourBand()]);
-  await turtleSay(greeting);
-  state.act = 'ACT_2_GATHERING';
+
+  // 一句短招呼(~1 秒打字机)
+  await wait(500);
+  await turtleSay(pickFrom(SHORT_GREETINGS));
+
+  // 抹掉三角和「轻触继续」(不需要用户点,自动开输入)
+  $continueArrow.classList.remove('show');
+  $tapHint.classList.remove('show');
+
+  // 短暂停留让用户读完招呼,再开输入框
+  await wait(400);
+  enterInputMode();
 }
 
 async function handleAct2(msg) {
@@ -495,7 +516,10 @@ async function handleUserSubmit() {
   await wait(700 + Math.random() * 600);
 
   // 路由到当前 act 的 handler
-  if (state.act === 'ACT_2_GATHERING') {
+  if (state.act === 'AWAITING_FIRST_INPUT') {
+    // 第一条消息 → 跳过 Act 2 收纳,直接起卦
+    await enterAct3();
+  } else if (state.act === 'ACT_2_GATHERING') {
     await handleAct2(q);
   } else if (state.act === 'ACT_4_FOLLOWUP') {
     await handleAct4(q);
@@ -511,7 +535,7 @@ document.addEventListener('click', function(e) {
     skipTypewriter();
   } else if (state.uiState === 'waiting') {
     // 小乌龟说完了 → 切到用户输入态(仅 Act 2/4 才允许输入)
-    if (state.act === 'ACT_2_GATHERING' || state.act === 'ACT_4_FOLLOWUP') {
+    if (state.act === 'ACT_4_FOLLOWUP') {
       enterInputMode();
     }
   }
@@ -539,6 +563,42 @@ $farewellBtn.addEventListener('click', function() {
 
 // 启动
 enterAct1();
+</script>
+</body>
+</html>
+ion() {
+  $act5Actions.classList.remove('show');
+  turtleSay('好。走吧。');
+});
+
+enterAct1();
+</script>
+</body>
+</html>
+>
+</html>
+).length === 0;
+});
+$input.addEventListener('keydown', function(e) {
+  if (e.key === 'Enter' && !$sendBtn.disabled) handleUserSubmit();
+});
+$sendBtn.addEventListener('click', handleUserSubmit);
+
+$askAgainBtn.addEventListener('click', function() {
+  $act5Actions.classList.remove('show');
+  $activity.textContent = activityCaption();
+  enterAct1();
+});
+$farewellBtn.addEventListener('click', function() {
+  $act5Actions.classList.remove('show');
+  turtleSay('好。走吧。');
+});
+
+enterAct1();
+</script>
+</body>
+</html>
+rAct1();
 </script>
 </body>
 </html>
